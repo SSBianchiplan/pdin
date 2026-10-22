@@ -1,0 +1,1768 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GPlanSiS|PDIN · Gêmeo digital — Planta Aurora (fictícia) / Térreo</title>
+<style>
+:root{
+  --font-data: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* TEMA CHÃO (claro) */
+  --c-canvas:#EAECEE; --c-panel:#F5F6F7; --c-panel-2:#FFFFFF;
+  --c-line:#C3C9CE; --c-line-2:#9AA3AA;
+  --c-ink:#1A1F24; --c-ink-2:#59636C; --c-ink-3:#8B959D;
+  --c-accent:#E2452A; --c-select:#0091AE;
+  --c-alarm:#D50000; --c-warn:#E08600; --c-ok:#3F7A52;
+  --shadow: 0 1px 0 rgba(26,31,36,.06), 0 8px 24px -12px rgba(26,31,36,.28);
+}
+html[data-theme="turno"]{
+  --c-canvas:#0F1317; --c-panel:#161B21; --c-panel-2:#1D242B;
+  --c-line:#2C353D; --c-line-2:#46525C;
+  --c-ink:#E4E9ED; --c-ink-2:#98A5AF; --c-ink-3:#67757F;
+  --c-accent:#F97316; --c-select:#22D3EE;
+  --c-alarm:#FF3B30; --c-warn:#FFB020; --c-ok:#4ADE80;
+  --shadow: 0 1px 0 rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--c-canvas); color:var(--c-ink);
+  font-family:var(--font-ui); overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  transition:background .35s ease,color .35s ease;
+}
+canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;touch-action:none}
+
+/* ---------- moldura de prancha ---------- */
+.frame{position:fixed;inset:10px;pointer-events:none;z-index:5}
+.frame span{position:absolute;width:14px;height:14px;border:1px solid var(--c-line-2);opacity:.7}
+.frame span:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}
+.frame span:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}
+.frame span:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}
+.frame span:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
+
+/* ---------- trilho superior ---------- */
+.rail-top{
+  position:fixed;top:0;left:0;right:0;height:52px;z-index:20;
+  display:flex;align-items:center;gap:0;
+  background:color-mix(in srgb,var(--c-panel) 88%,transparent);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--c-line);
+}
+.brand{display:flex;align-items:baseline;gap:10px;padding:0 12px;height:100%;flex-shrink:0;
+  border-right:1px solid var(--c-line);flex:0 0 auto}
+.brand b{font-size:14px;font-weight:700;letter-spacing:-.02em}
+.brand i{font-style:normal;font-size:14px;font-weight:400;color:var(--c-accent)}
+.brand small{font-family:var(--font-data);font-size:9.5px;letter-spacing:.16em;
+  color:var(--c-ink-3);text-transform:uppercase;padding-left:6px;border-left:1px solid var(--c-line)}
+
+.kpis{display:flex;align-items:stretch;height:100%;flex:1;min-width:0;overflow:hidden}
+.kpi{padding:7px 16px;border-right:1px solid var(--c-line);display:flex;flex-direction:column;
+  justify-content:center;min-width:96px;flex:0 0 auto}
+.kpi u{text-decoration:none;font-family:var(--font-data);font-size:9px;letter-spacing:.14em;
+  color:var(--c-ink-3);text-transform:uppercase}
+.kpi v{display:block;font-family:var(--font-data);font-size:16px;font-weight:600;
+  line-height:1.15;font-variant-numeric:tabular-nums}
+.kpi.is-alarm v{color:var(--c-alarm)}
+.kpi.is-warn v{color:var(--c-warn)}
+
+.clock{display:flex;flex-shrink:0;align-items:center;gap:12px;padding:0 14px;flex:0 0 auto}
+.turno{font-family:var(--font-data);font-size:10px;letter-spacing:.14em;color:var(--c-ink-2)}
+.clock v{font-family:var(--font-data);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+
+.speed{display:flex;border:1px solid var(--c-line);border-radius:2px;overflow:hidden}
+.speed button{font-family:var(--font-data);font-size:10px;padding:5px 8px;background:transparent;
+  border:0;border-right:1px solid var(--c-line);color:var(--c-ink-2);cursor:pointer}
+.speed button:last-child{border-right:0}
+.speed button[aria-pressed="true"]{background:var(--c-ink);color:var(--c-panel)}
+
+/* ---------- rail esquerdo: sequência PCP ---------- */
+.rail-left{
+  position:fixed;top:52px;bottom:0;left:0;width:232px;z-index:15;
+  background:color-mix(in srgb,var(--c-panel) 86%,transparent);
+  backdrop-filter:blur(14px);border-right:1px solid var(--c-line);
+  display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1)
+}
+.rail-left[data-open="false"]{transform:translateX(-232px)}
+.rail-hd{padding:12px 14px 9px;border-bottom:1px solid var(--c-line)}
+.rail-hd h2{font-family:var(--font-data);font-size:9.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--c-ink-3);font-weight:500}
+.rail-hd p{font-size:11px;color:var(--c-ink-2);margin-top:3px;line-height:1.35}
+.stages{flex:1;overflow-y:auto;padding:4px 0 20px;scrollbar-width:thin}
+.stage{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;
+  padding:7px 14px;cursor:pointer;border-left:2px solid transparent;position:relative}
+.stage:hover{background:color-mix(in srgb,var(--c-select) 9%,transparent)}
+.stage[data-sel="true"]{border-left-color:var(--c-select);
+  background:color-mix(in srgb,var(--c-select) 13%,transparent)}
+.stage n{font-family:var(--font-data);font-size:10px;color:var(--c-ink-3);
+  font-variant-numeric:tabular-nums}
+.stage .nm{font-size:11.5px;font-weight:500;letter-spacing:-.005em;line-height:1.2}
+.stage .bar{grid-column:2/4;height:3px;background:var(--c-line);border-radius:2px;overflow:hidden;margin-top:4px}
+.stage .bar i{display:block;height:100%;background:var(--c-ink-2);transition:width .5s ease}
+.stage[data-st="alarm"] .bar i{background:var(--c-alarm)}
+.stage[data-st="warn"] .bar i{background:var(--c-warn)}
+.stage .wip{font-family:var(--font-data);font-size:11px;font-variant-numeric:tabular-nums;
+  color:var(--c-ink-2)}
+.stage .dot{position:absolute;right:14px;top:9px;width:6px;height:6px;border-radius:50%}
+.stage[data-st="alarm"] .dot{background:var(--c-alarm);animation:pulse 1.1s infinite}
+.stage[data-st="warn"] .dot{background:var(--c-warn)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.18}}
+
+/* ---------- drawer direito ---------- */
+.drawer{
+  position:fixed;top:52px;right:0;width:320px;max-height:calc(100% - 52px);z-index:18;
+  background:color-mix(in srgb,var(--c-panel) 92%,transparent);
+  backdrop-filter:blur(16px);border-left:1px solid var(--c-line);
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:translateX(320px);transition:transform .32s cubic-bezier(.4,0,.2,1)
+}
+.drawer[data-open="true"]{transform:translateX(0)}
+.dw-hd{padding:14px 16px 12px;border-bottom:1px solid var(--c-line);position:relative}
+.dw-hd u{text-decoration:none;font-family:var(--font-data);font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--c-accent)}
+.dw-hd h3{font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.15;margin-top:4px}
+.dw-hd p{font-family:var(--font-data);font-size:10px;color:var(--c-ink-3);margin-top:5px}
+.dw-close{position:absolute;top:12px;right:12px;width:24px;height:24px;border:1px solid var(--c-line);
+  background:transparent;color:var(--c-ink-2);cursor:pointer;font-size:14px;line-height:1;border-radius:2px}
+.dw-body{overflow-y:auto;padding:0 0 8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr}
+.cell{padding:11px 16px;border-bottom:1px solid var(--c-line);border-right:1px solid var(--c-line)}
+.cell:nth-child(2n){border-right:0}
+.cell u{text-decoration:none;font-family:var(--font-data);font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--c-ink-3)}
+.cell v{display:block;font-family:var(--font-data);font-size:18px;font-weight:600;
+  font-variant-numeric:tabular-nums;margin-top:3px}
+.sect{padding:12px 16px;border-bottom:1px solid var(--c-line)}
+.sect h4{font-family:var(--font-data);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--c-ink-3);margin-bottom:8px}
+.op{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:6px 0;
+  border-bottom:1px dashed var(--c-line)}
+.op:last-child{border-bottom:0}
+.op b{font-family:var(--font-data);font-size:11px;font-weight:600}
+.op s{text-decoration:none;font-family:var(--font-data);font-size:10px;color:var(--c-ink-2);
+  font-variant-numeric:tabular-nums}
+.op .pr{grid-column:1/3;height:3px;background:var(--c-line);border-radius:2px;overflow:hidden;margin-top:3px}
+.op .pr i{display:block;height:100%;background:var(--c-select)}
+.op em{font-style:normal;font-size:10px;color:var(--c-ink-3)}
+.alm{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--c-line)}
+.alm:last-child{border-bottom:0}
+.alm .pri{font-family:var(--font-data);font-size:9px;font-weight:700;padding:2px 5px;border-radius:2px;
+  color:#fff;flex:0 0 auto;margin-top:1px}
+.alm .txt{font-size:11px;line-height:1.35}
+.alm .txt s{display:block;text-decoration:none;font-family:var(--font-data);font-size:9.5px;color:var(--c-ink-3);margin-top:2px}
+.dw-ft{padding:12px 16px;border-top:1px solid var(--c-line);background:var(--c-panel-2)}
+.enter{width:100%;padding:11px;background:var(--c-ink);color:var(--c-panel);border:0;border-radius:2px;
+  font-family:var(--font-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.enter:hover{background:var(--c-accent)}
+.dw-ft small{display:block;font-family:var(--font-data);font-size:9px;color:var(--c-ink-3);
+  margin-top:7px;word-break:break-all}
+
+/* ---------- régua inferior ---------- */
+.rail-bot{
+  position:fixed;bottom:0;left:0;right:0;height:44px;z-index:20;display:flex;align-items:center;
+  gap:6px;padding:0 12px;background:color-mix(in srgb,var(--c-panel) 88%,transparent);
+  backdrop-filter:blur(14px);border-top:1px solid var(--c-line);overflow-x:auto;scrollbar-width:none
+}
+.rail-bot::-webkit-scrollbar{display:none}
+.grp{display:flex;align-items:center;gap:0;border:1px solid var(--c-line);border-radius:2px;flex:0 0 auto}
+.grp>span{font-family:var(--font-data);font-size:8.5px;letter-spacing:.14em;color:var(--c-ink-3);
+  padding:0 8px;text-transform:uppercase;border-right:1px solid var(--c-line);align-self:stretch;
+  display:flex;align-items:center}
+.tg{font-family:var(--font-data);font-size:10px;padding:6px 9px;background:transparent;border:0;
+  border-right:1px solid var(--c-line);color:var(--c-ink-2);cursor:pointer;white-space:nowrap}
+.tg:last-child{border-right:0}
+.tg[aria-pressed="true"]{background:var(--c-ink);color:var(--c-panel)}
+.legend{display:flex;align-items:center;gap:12px;margin-left:auto;padding-left:12px;flex:0 0 auto}
+.lg{display:flex;align-items:center;gap:5px;font-family:var(--font-data);font-size:9px;color:var(--c-ink-2);white-space:nowrap}
+.lg i{width:9px;height:9px;border-radius:1px;display:block}
+
+/* ---------- labels 3D + tooltip ---------- */
+.labels{position:fixed;inset:0;pointer-events:none;z-index:10;overflow:hidden}
+.lb{position:absolute;transform:translate(-50%,-50%);font-family:var(--font-data);
+  font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--c-ink-2);
+  white-space:nowrap;text-shadow:0 1px 3px var(--c-canvas),0 0 8px var(--c-canvas);
+  will-change:transform,opacity}
+.lb b{display:block;font-size:8px;font-weight:600;color:var(--c-ink-3);letter-spacing:.14em}
+.tip{position:fixed;z-index:30;pointer-events:none;background:var(--c-ink);color:var(--c-panel);
+  padding:7px 10px;border-radius:2px;font-family:var(--font-data);font-size:10.5px;
+  line-height:1.45;opacity:0;transition:opacity .12s;box-shadow:var(--shadow);max-width:230px}
+.tip b{display:block;font-size:11px;margin-bottom:2px}
+.tip s{text-decoration:none;opacity:.65;font-size:9px}
+
+/* ---------- carimbo ---------- */
+.stamp{position:fixed;right:14px;bottom:56px;z-index:12;border:1px solid var(--c-line);
+  background:color-mix(in srgb,var(--c-panel) 78%,transparent);backdrop-filter:blur(8px);
+  font-family:var(--font-data);font-size:8.5px;color:var(--c-ink-3);line-height:1.5;
+  padding:7px 10px;letter-spacing:.06em;transition:opacity .25s}
+.stamp b{color:var(--c-ink-2);font-weight:600}
+.rail-left[data-open="false"]~.rail-toggle{left:8px}
+.rail-toggle{position:fixed;left:240px;top:60px;z-index:16;width:26px;height:26px;
+  border:1px solid var(--c-line);background:var(--c-panel);color:var(--c-ink-2);cursor:pointer;
+  border-radius:2px;font-size:12px;line-height:1;transition:left .3s cubic-bezier(.4,0,.2,1)}
+
+.hint{position:fixed;left:248px;bottom:56px;z-index:12;max-width:300px;
+  font-size:11px;line-height:1.5;color:var(--c-ink-2);background:color-mix(in srgb,var(--c-panel) 82%,transparent);
+  backdrop-filter:blur(8px);border:1px solid var(--c-line);border-left:2px solid var(--c-accent);
+  padding:9px 12px;transition:opacity .45s,transform .45s}
+.hint b{color:var(--c-ink)}
+.hint kbd{font-family:var(--font-data);font-size:9.5px;border:1px solid var(--c-line);
+  padding:0 3px;border-radius:2px}
+.hint.gone{opacity:0;transform:translateY(6px);pointer-events:none}
+@media (max-width:900px){.hint{left:12px;max-width:220px}}
+
+/* ---------- boot ---------- */
+.boot{position:fixed;inset:0;z-index:50;background:var(--c-canvas);display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s}
+.boot.gone{opacity:0;pointer-events:none}
+/* A marca alinhada COM o wordmark, e nao maior que ele: 15 px e a altura em que o wordmark
+   fica com o mesmo peso visual do `GPlanSIS`. Em 18 px ela dominava a faixa e empurrava o resto.
+   `flex-shrink:0` porque numa janela estreita quem encolhe sao os KPIs, nunca a marca. */
+.rail-marca{display:flex;align-items:center;flex-shrink:0;
+  padding-inline:14px 12px;border-inline-end:1px solid var(--c-line)}
+.rail-logo{display:none;height:15px;width:auto}
+[data-theme="turno"] .rail-logo-escuro{display:block}
+[data-theme="chao"] .rail-logo-claro,:root:not([data-theme]) .rail-logo-claro{display:block}
+
+/* Os botoes ficam a DIREITA dos KPIs e a esquerda do relogio: quem le a faixa da esquerda para a
+   direita encontra primeiro o que esta acontecendo e depois o que pode fazer a respeito. */
+/* `nowrap` e `flex-shrink:0`, e NAO `flex-wrap:wrap`.
+   Medido em 2026-08-10, nas quatro larguras: com `wrap`, em 1280 e 1440 os botoes `OPs por fase`
+   e `Tela cheia` caiam para uma segunda linha que a faixa de 52 px CORTA — os dois mais uteis da
+   barra, invisiveis num notebook comum, sem nada acusando. Em 1600 e 1920 estava tudo la, que e'
+   como o defeito passou pela minha primeira medicao.
+   Quem encolhe agora e' `.kpis` (que ja tem `min-width:0` e `overflow:hidden`), e nao os botoes.
+   E' a ordem certa de sacrificio: OEE e OTIF nem existem nesta base. */
+.rail-acoes{display:flex;align-items:center;gap:6px;margin-inline-start:auto;
+  padding-inline:10px;flex-wrap:nowrap;flex-shrink:0}
+.rail-acao{font-family:var(--font-data);font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;padding:5px 10px;border:1px solid var(--c-line);border-radius:3px;
+  background:transparent;color:var(--c-ink-2);cursor:pointer;min-height:28px}
+.rail-acao:hover{border-color:var(--c-line-2);color:var(--c-ink)}
+.rail-acao:focus-visible{outline:2px solid var(--c-select);outline-offset:2px}
+.rail-acao-forte{border-color:var(--c-accent);color:var(--c-accent)}
+
+/* Selo, e nao faixa propria: uma faixa exigiria empurrar `.rail-left`, a gaveta e o rodape, que
+   tem `top:52px` cravado — mexer no enquadramento da planta para caber um aviso e trocar o risco
+   de lugar. Ambar porque ausencia de fonte e fato sobre a base, nao defeito do sistema; o texto
+   inteiro esta no `title` e no carimbo do canto inferior. */
+.grp-tema .tema-nota{font-style:normal;font-family:var(--font-ui);font-size:10px;
+  color:var(--c-ink-3);padding-inline:4px}
+
+/* O cartao virou `<button>`: precisa desmanchar o desenho de botao do navegador e ganhar os
+   estados de foco e hover que um alvo clicavel deve ter.
+   NAO declara `display`: `.op` e' um GRID de duas colunas, e a primeira versao daqui punha
+   `display:block` — o grid morria e numero, projeto e data empilhavam SOBRE si mesmos. Era o
+   print que o dono mandou em 2026-08-10. Botao herda o layout do cartao; o que muda e' so' o
+   cromo do navegador. */
+.op-abre{width:100%;text-align:start;border:0;border-bottom:1px dashed var(--c-line);
+  background:transparent;font:inherit;color:inherit;cursor:pointer;padding-inline:0}
+/* `end` na segunda coluna: o codigo do projeto encosta na direita e a coluna de numeros fica
+   alinhada de cima a baixo — com `start` cada codigo comeca numa posicao diferente. */
+.op-abre s{text-align:end}
+.op-abre em{grid-column:1/3}
+.op-abre:hover b{color:var(--c-select)}
+.op-abre:focus-visible{outline:2px solid var(--c-select);outline-offset:2px}
+.dw-todas{width:100%;margin-block-start:8px;justify-content:center}
+.cell-sem v{color:var(--c-ink-3)}
+.cell-sem{cursor:help}
+.sect h4 .medido{font-family:var(--font-data);font-size:8.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--c-ok);border:1px solid var(--c-ok);border-radius:2px;
+  padding:1px 5px;margin-inline-start:6px}
+.op .op-proj{color:var(--c-ink-3)}
+
+@media (max-width: 1500px){
+  .speed{display:none}
+  .kpi.is-medido v{color:var(--c-ok)}
+.kpi.is-sem v{color:var(--c-ink-3)}
+.kpi.is-sem{cursor:help}
+
+.rail-selo{display:none}      /* o carimbo do canto inferior continua dizendo o mesmo */
+}
+@media (max-width: 1200px){
+  .kpis{display:none}           /* e' o bloco cujo conteudo a propria tela declara nao existir */
+}
+/* Abaixo de 1100 nem o relogio cabe, e os botoes CONTINUAM tendo de caber: medido em 1024, com o
+   relogio no lugar, `OPs por fase` e `Tela cheia` ficavam fora da faixa de 52 px — os dois mais
+   uteis, invisiveis, sem nada acusando. O relogio da simulacao e' o que menos custa perder: ele
+   marca um turno que a propria tela declara ser simulado. */
+@media (max-width: 1100px){
+  .clock{display:none}
+  .rail-marca{padding-inline:10px 8px}
+  .brand small{display:none}    /* `NOVA SEDE · TÉRREO` ja esta no titulo do modulo, na barra */
+}
+/* Abaixo de 1000 sai o wordmark tambem. A ordem de sacrificio e' deliberada e vai do menos ao
+   mais util: primeiro os KPIs (cujo conteudo a tela declara nao existir), depois o relogio da
+   simulacao, depois o wordmark — que a barra do sistema mostra a dois centimetros dali. A marca
+   FICA em todas as larguras, e os cinco botoes tambem.
+   Medido em sete larguras (900..1920): com esta regra, `fora: []` em todas. */
+@media (max-width: 1000px){
+  .brand{display:none}
+  .rail-acao{padding:5px 7px;letter-spacing:.03em}
+}
+
+.rail-selo{font-family:var(--font-data);font-size:9px;letter-spacing:.08em;white-space:nowrap;
+  padding:4px 8px;margin-inline-start:12px;border:1px solid var(--c-warn);border-radius:3px;
+  color:var(--c-warn);cursor:help}
+
+.boot-marca{display:block;margin-block-end:4px}
+.boot-logo{display:none;height:26px;width:auto}
+/* Branco no escuro, preto no claro — a mesma regra do cabecalho do sistema. O tema do twin e'
+   `chao` (claro) e `turno` (escuro), e o `data-theme` vem do sistema pelo `?tema=`. */
+[data-theme="turno"] .boot-logo-escuro{display:block}
+[data-theme="chao"] .boot-logo-claro,
+:root:not([data-theme]) .boot-logo-claro{display:block}
+.boot h1{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.boot p{font-family:var(--font-data);font-size:10px;letter-spacing:.16em;color:var(--c-ink-3);
+  text-transform:uppercase}
+.boot .ln{width:180px;height:2px;background:var(--c-line);overflow:hidden}
+.boot .ln i{display:block;height:100%;width:34%;background:var(--c-accent);
+  animation:sweep 1.05s cubic-bezier(.6,0,.4,1) infinite}
+@keyframes sweep{0%{transform:translateX(-110%)}100%{transform:translateX(400%)}}
+
+@media (max-width:900px){
+  .rail-left{width:200px}.rail-left[data-open="false"]{transform:translateX(-200px)}
+  .rail-toggle{left:208px}
+  .drawer{width:100%;max-width:340px}
+  .kpi:nth-child(n+4){display:none}
+  .stamp{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+:focus-visible{outline:2px solid var(--c-select);outline-offset:2px}
+</style>
+<style>.rail-top,.rail-left,.rail-toggle,.drawer,.rail-bot,.frame,.stamp,.hint,.boot{display:none!important}.label{font-size:9px!important}body{background:#101923!important}</style></head>
+<body>
+<canvas id="gl"></canvas>
+<div class="labels" id="labels"></div>
+<div class="frame"><span></span><span></span><span></span><span></span></div>
+
+<header class="rail-top">
+  <!-- A marca, branca no escuro e preta no claro. Dois `<img>` e o CSS escolhe — o mesmo
+       mecanismo de `Marca.tsx` e `MarcaGrande.tsx`: trocar `src` por tema pisca na primeira
+       pintura, e aqui a primeira pintura e' a faixa inteira. -->
+  <span class="rail-marca">
+    
+    
+  </span>
+  <div class="brand"><b data-i18n="sede.marca_a">GPlanSIS</b><i data-i18n="sede.marca_b">|Industrial</i><small data-i18n="sede.faixa.local">Planta demo · Térreo</small></div>
+  <div class="kpis" id="kpis"></div>
+  <!-- Os botoes do cabecalho da pagina, agora aqui. Cada um manda `postMessage` para o pai:
+       `navigate` para as rotas do sistema, `acao` para o que so' o React sabe fazer (tela cheia
+       no iframe, abrir o modal de OPs por fase). -->
+  <span class="rail-selo" data-i18n="sede.selo"
+        title="A geometria e a prancha R6 da sede. O movimento e simulado: nao ha telemetria de posto conectada. OEE e OTIF nao existem nesta base — sem tempo de maquina e sem motivo de parada registrados.">
+    GEOMETRIA REAL · MOVIMENTO SIMULADO
+  </span>
+  <nav class="rail-acoes" aria-label="Atalhos do sistema">
+    <button class="rail-acao" data-ir="/dashboard" data-i18n="sede.atalho.dashboard">Dashboard</button>
+    <button class="rail-acao" data-ir="/almoxarifado" data-i18n="sede.atalho.almoxarifado">Almoxarifado</button>
+    <button class="rail-acao" data-ir="/qtc" data-i18n="sede.atalho.qtc">Qualidade / TAF</button>
+    <button class="rail-acao rail-acao-forte" data-acao="ops-por-fase" data-i18n="sede.ops_fase">OPs por fase</button>
+    <button class="rail-acao" data-acao="tela-cheia" data-i18n="sede.tela_cheia">Tela cheia</button>
+  </nav>
+  <div class="clock">
+    <div>
+      <div class="turno" id="turno">TURNO A</div>
+      <v id="clk">06:00</v>
+    </div>
+    <div class="speed" id="speed">
+      <button data-s="1" aria-pressed="true">1×</button>
+      <button data-s="4">4×</button>
+      <button data-s="12">12×</button>
+      <button data-s="60">60×</button>
+    </div>
+  </div>
+</header>
+
+<aside class="rail-left" id="railLeft" data-open="true">
+  <div class="rail-hd">
+    <h2>Roteiro de produção</h2>
+    <p>Doze estágios da ordem de painel, do recebimento à expedição.</p>
+  </div>
+  <div class="stages" id="stages"></div>
+</aside>
+<button class="rail-toggle" id="railToggle" title="Mostrar ou ocultar o roteiro">‹</button>
+
+<aside class="drawer" id="drawer" data-open="false">
+  <div class="dw-hd">
+    <button class="dw-close" id="dwClose" title="Fechar">×</button>
+    <u id="dwTag">ESTÁGIO 06</u>
+    <h3 id="dwName">—</h3>
+    <p id="dwMeta">—</p>
+  </div>
+  <div class="dw-body" id="dwBody"></div>
+  <div class="dw-ft">
+    <button class="enter" id="dwEnter"><span>Abrir módulo</span><span>→</span></button>
+    <small id="dwLink">—</small>
+  </div>
+</aside>
+
+<footer class="rail-bot">
+  <div class="grp"><span>Vista</span>
+    <button class="tg" data-view="iso" aria-pressed="true">ISO</button>
+    <button class="tg" data-view="plan">Planta</button>
+    <button class="tg" data-view="norte">Norte</button>
+  </div>
+  <div class="grp"><span>Camadas</span>
+    <button class="tg" data-layer="flow" aria-pressed="true">Fluxo</button>
+    <button class="tg" data-layer="wip" aria-pressed="true">WIP</button>
+    <button class="tg" data-layer="people" aria-pressed="true">Pessoas</button>
+    <button class="tg" data-layer="alarm" aria-pressed="true">Alarmes</button>
+    <button class="tg" data-layer="label" aria-pressed="true">Rótulos</button>
+    <button class="tg" data-layer="roof">Cobertura</button>
+  </div>
+  <!-- O seletor de tema do twin FOI REMOVIDO em 2026-08-10. Ele era um segundo controle para a
+       mesma preferencia, e os dois discordavam: com o sistema em escuro, clicar em `Chão` aqui
+       deixava a planta clara dentro de um sistema escuro. O tema agora vem da Aparencia do
+       GPlanSIS e chega por `postMessage`. -->
+  <div class="grp grp-tema"><span data-i18n="sede.tema_rotulo">Tema</span>
+    <em class="tema-nota" data-i18n="sede.tema_nota">definido na Aparência do sistema</em>
+  </div>
+  <div class="legend">
+    <div class="lg"><i style="background:var(--c-alarm)"></i>Alarme P1</div>
+    <div class="lg"><i style="background:var(--c-warn)"></i>Desvio P2</div>
+    <div class="lg"><i style="background:var(--c-select)"></i>Seleção</div>
+    <div class="lg"><i style="background:var(--c-line-2)"></i>Normal</div>
+  </div>
+</footer>
+
+<div class="stamp" id="stamp">
+  <div><b>PLANTA AURORA (FICTÍCIA)</b> — PAINÉIS ELÉTRICOS</div>
+  <div>REV <b>R6</b> · ESC 1:250 · TÉRREO 01/01</div>
+  <div>TWIN <b>GPLANSIS·PCP</b> · GEOMETRIA REAL · <b>MOVIMENTO SIMULADO</b></div>
+  <div>OEE e OTIF <b>não existem nesta base</b> — sem tempo de máquina nem parada</div>
+</div>
+
+<div class="hint" id="hint">
+  <b>Clique numa área</b> para abrir o módulo correspondente.
+  Arraste para orbitar · roda do mouse aproxima · <kbd>Shift</kbd>+arraste desloca.
+</div>
+<div class="tip" id="tip"></div>
+
+<div class="boot" id="boot">
+  <span class="boot-marca">
+    
+    
+  </span>
+  <h1>GPlanSIS<span style="color:var(--c-accent)">|PCP</span></h1>
+  <div class="ln"><i></i></div>
+  <p>Montando o térreo</p>
+</div>
+
+<!-- three.js r128 VERSIONADO (`three@0.128.0`), nao mais de CDN: a planta do terreo nao
+     pode depender de rede externa, e script de CDN nao entra no `npm run audit:gate`. -->
+<script src="./three.min.js"></script>
+<script>
+"use strict";
+/* ---- tema herdado do sistema -------------------------------------------------------------
+   `?tema=escuro|claro` na entrada, `postMessage` depois. Sem isto a planta abriria clara
+   dentro de um sistema escuro, que e' a emenda visivel de um modulo colado por fora. */
+(function () {
+  /* ## O tema tem de chegar na CENA, e nao so' no CSS
+   *
+   * Defeito medido em 2026-08-10 (e o dono viu antes de mim): a faixa escurecia e a planta 3D
+   * continuava branca. Sao DUAS camadas de cor neste arquivo — o CSS, que responde a
+   * `data-theme`, e os materiais do three.js, construidos a partir da paleta `PAL[THEME]`.
+   * Trocar so' o atributo pinta a moldura e deixa o quadro.
+   *
+   * Medido: com o sistema em escuro, `data-theme=turno` e `scene.background = #eaecee` — o
+   * cinza claro do tema `chao`.
+   *
+   * O twin ja tinha a funcao certa: `setTheme(t)` troca `P`, o fundo, a neblina, os materiais,
+   * as luzes, o anel de selecao e os pilares. Eu simplesmente nao a chamava.
+   *
+   * `setTheme` toca objetos que so' existem depois de a cena montar, entao a aplicacao inicial
+   * fica PENDENTE ate' `__cenaPronta`, e quem a executa e' o fim do boot. */
+  function paraOTwin(t) { return t === "escuro" ? "turno" : "chao"; }
+
+  function aplicarTema(t) {
+    var alvo = paraOTwin(t);
+    window.__temaDesejado = alvo;
+    /* O atributo primeiro: pinta faixa, roteiro e gaveta na hora, mesmo sem cena. */
+    document.documentElement.setAttribute("data-theme", alvo);
+    if (typeof window.setTheme === "function" && window.__cenaPronta) window.setTheme(alvo);
+  }
+  /* Os botoes da faixa. `navigate` e' o MESMO contrato que "Abrir modulo" ja usava; `acao` e'
+     novo e existe para o que so' o pai consegue fazer — pedir tela cheia no iframe e abrir um
+     dialogo React sobre a planta. */
+  document.querySelectorAll(".rail-acao").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var ir = b.dataset.ir, acao = b.dataset.acao;
+      try {
+        if (ir) parent.postMessage({ source: "gplansis-twin", type: "navigate", href: ir }, "*");
+        else if (acao) parent.postMessage({ source: "gplansis-twin", type: "acao", acao: acao,
+                                            estagio: window.__estagioAtual || null }, "*");
+      } catch (err) { /* fora de iframe (aberto direto), o botao nao faz nada e nao quebra */ }
+    });
+  });
+
+  /* Traducao vinda do pai. O twin nasceu com o texto em portugues cravado no HTML, e o sistema
+     fala tres linguas — `G8` cobra paridade. Em vez de duplicar o catalogo aqui, o pai manda o
+     que ja tem, e cada `[data-i18n]` troca. Sem a mensagem, fica o portugues do arquivo: texto
+     na lingua errada e pior que texto sem traducao, mas os dois sao melhores que tela vazia. */
+  /* Os KPIs medidos, vindos de `GET /dashboard`. Guardar e' o que permite ao `buildKpis` do
+     tique seguinte desenhar o numero certo sem pedir de novo. */
+  window.addEventListener("message", function (e) {
+    if (!e.data || e.data.source !== "gplansis" || e.data.type !== "piso") return;
+    window.__piso = e.data.piso || null;
+    if (typeof window.refreshKpis === "function") window.refreshKpis();
+  });
+
+  /* A resposta da carteira: GUARDA e manda redesenhar. Nao desenha por conta propria. */
+  window.addEventListener("message", function (e) {
+    if (!e.data || e.data.source !== "gplansis" || e.data.type !== "ops") return;
+    OPS_CACHE[e.data.estagio] = {
+      semFase: !!e.data.semFase, itens: e.data.itens || [],
+      total: e.data.total || 0, avancoMedio: e.data.avancoMedio
+    };
+    if (e.data.estagio !== window.__estagioAtual) return;
+    var alvo = document.getElementById("dwOps");
+    if (alvo) alvo.innerHTML = corpoDasOrdens(e.data.estagio);
+    numerosDoEstagio(e.data.estagio);
+  });
+
+  window.addEventListener("message", function (e) {
+    if (!e.data || e.data.source !== "gplansis" || e.data.type !== "i18n") return;
+    var d = e.data.dic || {};
+    DIC = d;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var v = d[el.getAttribute("data-i18n")];
+      if (typeof v === "string" && v) el.innerHTML = v;
+    });
+  });
+
+  var inicial = new URLSearchParams(location.search).get("tema");
+  aplicarTema(inicial === "escuro" ? "escuro" : "claro");
+  window.addEventListener("message", function (e) {
+    if (e.data && e.data.source === "gplansis" && e.data.type === "tema") aplicarTema(e.data.tema);
+  });
+})();
+/* =====================================================================
+   GPlanSIS | PCP — DIGITAL TWIN NOVA SEDE (TÉRREO)
+   Geometria derivada de layout-as-data. Coordenadas em pixels da
+   prancha de referência do layout de demonstração; S converte p/ metros.
+   Corrigir a planta = corrigir os números abaixo, nunca o modelo.
+   ===================================================================== */
+var S = 0.12;           // metros por pixel de prancha
+var PXW = 1294, PXH = 924;
+
+/* ---- Estágios do roteiro (a numeração É a sequência produtiva) ---- */
+var STAGES = [
+  {n:"01", id:"receb",   nm:"Recebimento",              mod:"/almoxarifado"},
+  {n:"02", id:"almox",   nm:"Almoxarifado",             mod:"/almoxarifado"},
+  {n:"03", id:"corte",   nm:"Corte",                    mod:"/cruzamento"},
+  {n:"04", id:"barr",    nm:"Preparação de barramentos",mod:"/cruzamento"},
+  {n:"05", id:"mec",     nm:"Montagem mecânica",        mod:"/avanco-montagem"},
+  {n:"06", id:"eletrica",nm:"Montagem elétrica",        mod:"/avanco-montagem"},
+  {n:"07", id:"ident",   nm:"Identificação",            mod:"/avanco-montagem"},
+  {n:"08", id:"comp",    nm:"Montagem de componentes",  mod:"/avanco-montagem"},
+  {n:"09", id:"teste",   nm:"Testes",                   mod:"/qtc"},
+  {n:"10", id:"acab",    nm:"Acabamento",               mod:"/avanco-montagem"},
+  {n:"11", id:"embal",   nm:"Embalagem",                mod:"/avanco-montagem"},
+  {n:"12", id:"exped",   nm:"Expedição",                mod:"/ops"}
+];
+
+/* ---- Áreas: [id, nome, px, pz, pw, ph, tipo, opções] --------------
+   tipo: hall (envelope) | room (paredes 2,6 m) | zone (demarcação de
+   piso) | ext (edificação externa) | gate (portão)                   */
+var AREAS = [
+  /* envelopes */
+  {id:"env_a", nm:"Galpão oeste",  x:28, z:226, w:328, h:466, t:"hall"},
+  {id:"env_b", nm:"Galpão leste",  x:372,z:116, w:268, h:630, t:"hall"},
+
+  /* bloco oeste — armazenagem e mecânica */
+  {id:"almox_ext", nm:"Almoxarifado externo", x:20, z:62,  w:72,  h:130, t:"ext",  st:"almox"},
+  {id:"garagem_n", nm:"Garagem",              x:262,z:4,   w:150, h:52,  t:"ext"},
+  {id:"carga",     nm:"Carga e descarga",     x:118,z:114, w:237, h:92,  t:"zone", st:"exped", eq:"dock"},
+  {id:"almox",     nm:"Almoxarifado",         x:30, z:228, w:205, h:118, t:"zone", st:"almox", eq:"rack"},
+  {id:"mezanino",  nm:"Mezanino",             x:36, z:296, w:160, h:46,  t:"zone", mez:true},
+  {id:"receb",     nm:"Recebimento",          x:268,z:234, w:78,  h:32,  t:"room", st:"receb"},
+  {id:"esp_almox", nm:"Expansão almoxarifado",x:266,z:270, w:62,  h:62,  t:"zone", st:"almox"},
+  {id:"est_barr",  nm:"Estoque de barramento",x:338,z:274, w:18,  h:82,  t:"room", st:"barr"},
+  {id:"arq",       nm:"Arquivo morto",        x:60, z:358, w:90,  h:38,  t:"room"},
+  {id:"dep_almox", nm:"Depósito almox.",      x:88, z:414, w:212, h:38,  t:"zone", st:"almox", eq:"rack"},
+  {id:"gavetas",   nm:"Montagem mec. gavetas",x:88, z:452, w:212, h:68,  t:"zone", st:"mec",  eq:"bench"},
+  {id:"barr",      nm:"Preparação barramentos",x:300,z:398,w:56,  h:122, t:"zone", st:"barr", eq:"bench"},
+  {id:"kanban",    nm:"Kanban",               x:62, z:552, w:56,  h:66,  t:"zone", eq:"rack"},
+  {id:"ferram",    nm:"Ferramentaria",        x:62, z:618, w:56,  h:62,  t:"room"},
+  {id:"mec",       nm:"Montagem mec. painéis",x:140,z:542, w:160, h:112, t:"zone", st:"mec", eq:"panel"},
+  {id:"corte",     nm:"Sala de cortes",       x:300,z:558, w:50,  h:132, t:"room", st:"corte", eq:"bench"},
+  {id:"tintas",    nm:"Depósito de tintas",   x:238,z:652, w:38,  h:38,  t:"room"},
+
+  /* bloco leste — produção elétrica */
+  {id:"embal",  nm:"Área de embalagem",  x:378,z:128, w:48,  h:62,  t:"zone", st:"embal", eq:"crate"},
+  {id:"acab",   nm:"Área de acabamento", x:428,z:128, w:60,  h:62,  t:"zone", st:"acab",  eq:"panel"},
+  {id:"teste",  nm:"Área de testes",     x:490,z:128, w:90,  h:62,  t:"zone", st:"teste", eq:"panel"},
+  {id:"qtc",    nm:"Escritório QTC",     x:584,z:128, w:56,  h:48,  t:"room"},
+  {id:"portao", nm:"Entrada de caminhões",x:356,z:148,w:18,  h:54,  t:"gate"},
+  {id:"s2me",   nm:"Setor 2 · Mont. elétrica", x:398,z:218, w:108,h:152,t:"zone", st:"eletrica", eq:"panel"},
+  {id:"s1me",   nm:"Setor 1 · Mont. elétrica", x:398,z:374, w:108,h:156,t:"zone", st:"eletrica", eq:"panel"},
+  {id:"s2id",   nm:"Setor 2 · Identificação",  x:518,z:218, w:108,h:112,t:"zone", st:"ident",    eq:"bench"},
+  {id:"s1id",   nm:"Setor 1 · Identificação",  x:518,z:334, w:108,h:106,t:"zone", st:"ident",    eq:"bench"},
+  {id:"s3me",   nm:"Setor 3 · Mont. elétrica", x:518,z:444, w:108,h:86, t:"zone", st:"eletrica", eq:"panel"},
+  {id:"comp",   nm:"Montagem de componentes",  x:430,z:548, w:150,h:58, t:"zone", st:"comp",     eq:"bench"},
+  {id:"marc",   nm:"Painéis elé. marcação",    x:378,z:558, w:42, h:34, t:"room", st:"ident"},
+  {id:"ti",     nm:"Sala de servidores",       x:378,z:594, w:24, h:46, t:"room"},
+  {id:"copa_i", nm:"Copa",                     x:378,z:640, w:24, h:42, t:"room"},
+  {id:"recep",  nm:"Recepção",                 x:378,z:684, w:42, h:58, t:"room"},
+  {id:"pequenos",nm:"Mont. elé. painéis pequenos",x:430,z:628,w:100,h:114,t:"zone", st:"eletrica", eq:"bench"},
+  {id:"lab",    nm:"Sala laboratório",         x:534,z:628, w:46, h:52, t:"room", st:"teste"},
+  {id:"ident",  nm:"Sala de identificação",    x:530,z:686, w:50, h:48, t:"room", st:"ident"},
+  {id:"ban_m",  nm:"Banheiro masc.",           x:598,z:510, w:38, h:50, t:"room"},
+  {id:"ban_f",  nm:"Banheiro fem.",            x:598,z:562, w:38, h:56, t:"room"},
+  {id:"ves_m",  nm:"Vestiário masc.",          x:598,z:620, w:38, h:58, t:"room"},
+  {id:"ves_f",  nm:"Vestiário fem.",           x:598,z:680, w:38, h:60, t:"room"},
+  {id:"entrada",nm:"Entrada principal",        x:468,z:748, w:74, h:42, t:"ext"},
+
+  /* externos */
+  {id:"garagem_e",nm:"Garagem",  x:730,z:8,   w:152,h:48, t:"ext"},
+  {id:"copa_e",  nm:"Copa",      x:700,z:388, w:160,h:72, t:"ext"}
+];
+
+/* ---- Malha de fluxo: waypoints em px, encadeados por estágio ---- */
+var FLOWS = [
+  {from:"exped", to:"receb", p:[[196,58],[200,150],[300,158],[310,246]]},
+  {from:"receb", to:"almox", p:[[310,250],[250,262],[160,280]]},
+  {from:"almox", to:"corte", p:[[150,300],[150,430],[196,470],[280,560],[324,600]]},
+  {from:"corte", to:"barr",  p:[[324,600],[336,540],[330,470]]},
+  {from:"almox", to:"mec",   p:[[150,340],[130,430],[135,520],[190,580]]},
+  {from:"mec",   to:"eletrica", p:[[240,596],[330,610],[400,600],[440,560],[450,500]]},
+  {from:"barr",  to:"eletrica", p:[[330,450],[380,440],[430,446],[450,450]]},
+  {from:"eletrica", to:"comp",  p:[[452,470],[452,540],[500,576]]},
+  {from:"comp",  to:"eletrica", p:[[500,576],[540,560],[556,520]]},
+  {from:"eletrica", to:"ident", p:[[452,300],[500,286],[560,278]]},
+  {from:"eletrica", to:"ident", p:[[452,452],[506,400],[560,388]]},
+  {from:"ident", to:"teste", p:[[566,300],[580,240],[560,176],[534,162]]},
+  {from:"teste", to:"acab",  p:[[534,162],[496,160],[460,158]]},
+  {from:"acab",  to:"embal", p:[[460,158],[424,158],[402,160]]},
+  {from:"embal", to:"exped", p:[[402,160],[366,176],[300,172],[236,166]]}
+];
+
+/* ---- Rotas de veículos ---- */
+var ROUTES = {
+  empilhadeira1:[[160,290],[150,420],[190,470],[280,560],[324,610],[280,600],[190,580],[150,470],[150,330]],
+  empilhadeira2:[[440,470],[452,560],[500,584],[560,560],[566,420],[566,290],[576,200],[520,166],[430,158],[380,180],[330,168],[330,250],[400,300],[440,380]],
+  caminhao:[[196,-30],[196,60],[200,132],[280,150],[300,152],[280,150],[200,132],[196,60],[196,-40]]
+};
+
+
+/* =====================  PALETA  ===================== */
+var PAL = {
+  chao:{ bg:0xEAECEE, ground:0xE1E4E7, slab:0xD7DBDF, hall:0xCFD4D9, wall:0xC5CBD1,
+         room:0xDCE0E4, zone:0xD3D8DD, edge:0x8E979F, edgeSoft:0xB2BAC1,
+         accent:0xE2452A, select:0x0091AE, alarm:0xD50000, warn:0xE08600,
+         eq:0xB6BDC4, eqDark:0x8D959C, panel:0x9BA3AA, truck:0xC9CFD5,
+         person:0x6C767E, ink:0x1A1F24, roof:0xC9CFD5, hemi:0xFFFFFF, hemiG:0xD8DCE0,
+         dirI:1.05, ambI:0.62, fog:0xEAECEE },
+  turno:{ bg:0x0F1317, ground:0x141920, slab:0x1C232A, hall:0x232B33, wall:0x2B343D,
+         room:0x212932, zone:0x1E262E, edge:0x55636E, edgeSoft:0x394450,
+         accent:0xF97316, select:0x22D3EE, alarm:0xFF3B30, warn:0xFFB020,
+         eq:0x3A454F, eqDark:0x2A333B, panel:0x46525D, truck:0x3E4A54,
+         person:0x7C8994, ink:0xE4E9ED, roof:0x2E3941, hemi:0x93A6BB, hemiG:0x0C1014,
+         dirI:0.72, ambI:0.55, fog:0x0F1317 }
+};
+var THEME = "chao", P = PAL[THEME];
+
+/* =====================  CENA  ===================== */
+var cv = document.getElementById("gl");
+var renderer = new THREE.WebGLRenderer({canvas:cv, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(P.bg);
+scene.fog = new THREE.Fog(P.fog, 210, 560);   // profundidade atmosférica sutil
+
+/* centro do sítio: bounding box real das áreas, não o centro da folha */
+var BB = (function(){
+  var b = {x0:1e9, x1:-1e9, z0:1e9, z1:-1e9};
+  AREAS.forEach(function(a){
+    if (a.x < b.x0) b.x0 = a.x; if (a.x + a.w > b.x1) b.x1 = a.x + a.w;
+    if (a.z < b.z0) b.z0 = a.z; if (a.z + a.h > b.z1) b.z1 = a.z + a.h;
+  });
+  return b;
+})();
+var CX = ((BB.x0 + BB.x1) * 0.5) * S, CZ = ((BB.z0 + BB.z1) * 0.5) * S;
+var SITE_W = (BB.x1 - BB.x0) * S, SITE_D = (BB.z1 - BB.z0) * S;
+function mx(px){ return px * S - CX; }
+function mz(pz){ return pz * S - CZ; }
+function mw(pw){ return pw * S; }
+
+/* ---- câmera ortográfica, isometria verdadeira ---- */
+var SPAN = (SITE_W + SITE_D) / Math.SQRT2;   // largura projetada em isometria
+var VIEW = SPAN * 0.42;                      // meia-altura do frustum, em metros
+var camera = new THREE.OrthographicCamera(-1,1,1,-1, -500, 1000);
+var target = new THREE.Vector3(0, 0, 0);
+var orb = { az: Math.PI * 0.25, pol: Math.atan(1/Math.SQRT2), dist: 220, zoom: 1 };
+var orbGoal = { az: orb.az, pol: orb.pol, zoom: 1, tx:0, tz:0 };
+
+function applyCamera(){
+  var a = orb.az, p = orb.pol;
+  camera.position.set(
+    target.x + orb.dist * Math.cos(p) * Math.sin(a),
+    target.y + orb.dist * Math.sin(p),
+    target.z + orb.dist * Math.cos(p) * Math.cos(a)
+  );
+  camera.up.set(0,1,0);
+  camera.lookAt(target);
+}
+function resize(){
+  var w = innerWidth, h = innerHeight, asp = w / h;
+  VIEW = Math.max(SPAN * 0.42, (SPAN * 0.54) / asp);   // garante o sítio inteiro em qualquer tela
+  camera.left = -VIEW * asp; camera.right = VIEW * asp;
+  camera.top = VIEW; camera.bottom = -VIEW;
+  camera.zoom = orb.zoom;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false);
+}
+addEventListener("resize", resize);
+
+/* ---- luzes ---- */
+var hemi = new THREE.HemisphereLight(P.hemi, P.hemiG, P.ambI);
+scene.add(hemi);
+var sun = new THREE.DirectionalLight(0xFFFFFF, P.dirI);
+sun.position.set(-96, 150, 78);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+var sc = sun.shadow.camera;
+sc.left = -110; sc.right = 110; sc.top = 110; sc.bottom = -110; sc.near = 1; sc.far = 400;
+sun.shadow.bias = -0.0009; sun.shadow.normalBias = 0.05;
+scene.add(sun);
+var fill = new THREE.DirectionalLight(0xFFFFFF, 0.22);
+fill.position.set(80, 50, -70);
+scene.add(fill);
+
+/* =====================  MATERIAIS  ===================== */
+function mat(color, opt){
+  opt = opt || {};
+  var m = new THREE.MeshLambertMaterial({color:color});
+  if (opt.op !== undefined){ m.transparent = true; m.opacity = opt.op; }
+  if (opt.side) m.side = THREE.DoubleSide;
+  return m;
+}
+var M = {};
+function rebuildMaterials(){
+  M.slab.color.setHex(P.slab);   M.hall.color.setHex(P.hall);
+  M.wall.color.setHex(P.wall);   M.room.color.setHex(P.room);
+  M.zone.color.setHex(P.zone);   M.eq.color.setHex(P.eq);
+  M.eqDark.color.setHex(P.eqDark); M.panel.color.setHex(P.panel);
+  M.truck.color.setHex(P.truck); M.person.color.setHex(P.person);
+  M.ground.color.setHex(P.ground); M.roof.color.setHex(P.roof);
+  M.edge.color.setHex(P.edge);   M.edgeSoft.color.setHex(P.edgeSoft);
+  M.accent.color.setHex(P.accent); M.select.color.setHex(P.select);
+  M.alarm.color.setHex(P.alarm); M.warn.color.setHex(P.warn);
+}
+M.slab = mat(P.slab); M.hall = mat(P.hall); M.wall = mat(P.wall);
+M.room = mat(P.room); M.zone = mat(P.zone); M.eq = mat(P.eq);
+M.eqDark = mat(P.eqDark); M.panel = mat(P.panel); M.truck = mat(P.truck);
+M.person = mat(P.person); M.ground = mat(P.ground);
+M.roof = new THREE.MeshLambertMaterial({color:P.roof, transparent:true, opacity:0.95});
+M.edge = new THREE.LineBasicMaterial({color:P.edge, transparent:true, opacity:0.55});
+M.edgeSoft = new THREE.LineBasicMaterial({color:P.edgeSoft, transparent:true, opacity:0.5});
+M.accent = new THREE.MeshBasicMaterial({color:P.accent});
+M.select = new THREE.MeshBasicMaterial({color:P.select, transparent:true, opacity:0.85});
+M.alarm = new THREE.MeshBasicMaterial({color:P.alarm, transparent:true, opacity:0.9});
+M.warn = new THREE.MeshBasicMaterial({color:P.warn, transparent:true, opacity:0.9});
+M.flowLine = new THREE.LineBasicMaterial({color:P.accent, transparent:true, opacity:0.42});
+
+/* =====================  HELPERS DE GEOMETRIA  ===================== */
+var BOX = new THREE.BoxGeometry(1,1,1);
+var edgeAcc = [];   // acumulador de arestas estáticas
+
+function box(parent, x, y, z, w, h, d, material, opts){
+  opts = opts || {};
+  var m = new THREE.Mesh(BOX, material);
+  m.position.set(x, y + h/2, z);
+  m.scale.set(w, h, d);
+  m.castShadow = opts.shadow !== false;
+  m.receiveShadow = true;
+  if (opts.noShadow){ m.castShadow = false; }
+  parent.add(m);
+  if (opts.edge !== false) pushEdges(x, y, z, w, h, d);
+  return m;
+}
+function pushEdges(x, y, z, w, h, d){
+  var hx = w/2, hz = d/2, y0 = y, y1 = y + h;
+  var c = [[x-hx,z-hz],[x+hx,z-hz],[x+hx,z+hz],[x-hx,z+hz]];
+  for (var i=0;i<4;i++){
+    var a = c[i], b = c[(i+1)%4];
+    edgeAcc.push(a[0],y1,a[1], b[0],y1,b[1]);            // topo
+    edgeAcc.push(a[0],y0,a[1], a[0],y1,a[1]);            // vertical
+  }
+}
+function flushEdges(parent, material){
+  if (!edgeAcc.length) return null;
+  var g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(edgeAcc, 3));
+  edgeAcc = [];
+  var l = new THREE.LineSegments(g, material);
+  parent.add(l);
+  return l;
+}
+/* piso demarcado: preenchimento + contorno tracejado */
+function floorPlate(parent, x, z, w, d, y, color, op){
+  var g = new THREE.PlaneGeometry(w, d);
+  var m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({
+    color:color, transparent:true, opacity:op===undefined?1:op}));
+  m.rotation.x = -Math.PI/2;
+  m.position.set(x, y, z);
+  parent.add(m);
+  return m;
+}
+function dashedRect(parent, x, z, w, d, y, material, step){
+  step = step || 1.1;
+  var pts = [], hx = w/2, hd = d/2;
+  var corners = [[-hx,-hd],[hx,-hd],[hx,hd],[-hx,hd]];
+  for (var i=0;i<4;i++){
+    var a = corners[i], b = corners[(i+1)%4];
+    var len = Math.hypot(b[0]-a[0], b[1]-a[1]);
+    var n = Math.max(2, Math.floor(len/step));
+    for (var k=0;k<n;k++){
+      var t0 = k/n, t1 = t0 + 0.55/n;
+      pts.push(x + a[0]+(b[0]-a[0])*t0, y, z + a[1]+(b[1]-a[1])*t0);
+      pts.push(x + a[0]+(b[0]-a[0])*t1, y, z + a[1]+(b[1]-a[1])*t1);
+    }
+  }
+  var g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+  var l = new THREE.LineSegments(g, material);
+  parent.add(l);
+  return l;
+}
+
+
+/* =====================  CONSTRUÇÃO DO SÍTIO  ===================== */
+var root = new THREE.Group(); scene.add(root);
+var gRoof   = new THREE.Group(); root.add(gRoof);
+var gFlow   = new THREE.Group(); root.add(gFlow);
+var gWip    = new THREE.Group(); root.add(gWip);
+var gPeople = new THREE.Group(); root.add(gPeople);
+var gAlarm  = new THREE.Group(); root.add(gAlarm);
+var gVeh    = new THREE.Group(); root.add(gVeh);
+
+var pickables = [];        // meshes com userData.area
+var areaByI = {};          // id -> registro
+var SLAB_Y = 0.35;
+
+/* terreno */
+(function(){
+  var g = new THREE.PlaneGeometry(420, 420);
+  var m = new THREE.Mesh(g, M.ground);
+  m.rotation.x = -Math.PI/2; m.position.y = -0.02; m.receiveShadow = true;
+  root.add(m);
+  var grid = new THREE.GridHelper(400, 80, P.edgeSoft, P.edgeSoft);
+  grid.material.transparent = true; grid.material.opacity = 0.11;
+  grid.position.y = 0.005; root.add(grid); M.grid = grid.material;
+})();
+
+/* laje dos galpões */
+function slabFor(a){
+  var x = mx(a.x + a.w/2), z = mz(a.z + a.h/2), w = mw(a.w)+1.6, d = mw(a.h)+1.6;
+  box(root, x, 0, z, w, SLAB_Y, d, M.slab, {edge:true});
+}
+
+/* equipamentos por família */
+function equip(parent, a, kind){
+  var x0 = mx(a.x), z0 = mz(a.z), W = mw(a.w), D = mw(a.h);
+  var i, j, cols, rows;
+  if (kind === "rack"){
+    cols = Math.max(1, Math.floor(W/3.4)); rows = Math.max(1, Math.floor(D/4.2));
+    for (i=0;i<cols;i++) for (j=0;j<rows;j++){
+      var rx = x0 + 1.2 + i*3.4, rz = z0 + 1.6 + j*4.2;
+      if (rx+2.4 > x0+W || rz+2.6 > z0+D) continue;
+      box(parent, rx+1.1, SLAB_Y, rz+1.2, 2.2, 3.2, 1.5, M.eq);
+      box(parent, rx+1.1, SLAB_Y+1.05, rz+1.2, 2.24, 0.10, 1.54, M.eqDark, {edge:false, shadow:false});
+      box(parent, rx+1.1, SLAB_Y+2.15, rz+1.2, 2.24, 0.10, 1.54, M.eqDark, {edge:false, shadow:false});
+    }
+  } else if (kind === "bench"){
+    rows = Math.max(1, Math.floor(D/3.2));
+    for (j=0;j<rows;j++){
+      var bz = z0 + 1.5 + j*3.2; if (bz+0.9 > z0+D) continue;
+      box(parent, x0+W/2, SLAB_Y, bz, Math.max(1.6, W-2.4), 0.86, 0.9, M.eq);
+      box(parent, x0+W/2, SLAB_Y+0.86, bz-0.05, Math.max(1.6,W-2.4)*0.55, 0.06, 0.6, M.eqDark, {edge:false, shadow:false});
+    }
+  } else if (kind === "crate"){
+    for (i=0;i<5;i++){
+      var cx = x0 + 1.2 + (i%3)*2.0, cz = z0 + 1.4 + Math.floor(i/3)*2.4;
+      if (cx+1.6>x0+W || cz+1.8>z0+D) continue;
+      box(parent, cx+0.7, SLAB_Y, cz+0.9, 1.4, 1.1+((i*7)%4)*0.22, 1.7, M.eq);
+    }
+  } else if (kind === "dock"){
+    for (i=0;i<4;i++){
+      var dx = x0 + 2.0 + i*(W-4)/3;
+      box(parent, dx, SLAB_Y, z0+D-1.2, 2.4, 0.30, 1.6, M.eqDark);
+    }
+  }
+}
+
+/* geração das áreas */
+AREAS.forEach(function(a){
+  var x = mx(a.x + a.w/2), z = mz(a.z + a.h/2), w = mw(a.w), d = mw(a.h);
+  var rec = {a:a, x:x, z:z, w:w, d:d, meshes:[]};
+  areaByI[a.id] = rec;
+
+  if (a.t === "hall"){
+    slabFor(a);
+    var H = 7.0, t = 0.30;
+    box(root, x, SLAB_Y, z - d/2 + t/2, w, H, t, M.wall);
+    box(root, x, SLAB_Y, z + d/2 - t/2, w, H, t, M.wall);
+    box(root, x - w/2 + t/2, SLAB_Y, z, t, H, d, M.wall);
+    box(root, x + w/2 - t/2, SLAB_Y, z, t, H, d, M.wall);
+    var rf = box(gRoof, x, SLAB_Y + H, z, w+0.5, 0.45, d+0.5, M.roof, {edge:false});
+    rf.receiveShadow = false;
+    for (var k = -d/2 + 5; k < d/2 - 3; k += 6.2){
+      box(gRoof, x, SLAB_Y + H + 0.45, z + k, w+0.5, 0.10, 0.35, M.eqDark, {edge:false, shadow:false});
+    }
+    return;
+  }
+
+  if (a.t === "ext"){
+    box(root, x, 0, z, w, SLAB_Y, d, M.slab);
+    box(root, x, SLAB_Y, z, w, 3.4, d, M.room);
+    box(root, x, SLAB_Y + 3.4, z, w + 0.4, 0.30, d + 0.4, M.eqDark, {edge:false, shadow:false});
+    var pe = floorPlate(root, x, z, w, d, SLAB_Y + 3.72, P.hall, 0.001);
+    pe.userData.area = a.id; pickables.push(pe); rec.meshes.push(pe);
+    rec.top = SLAB_Y + 3.7;
+    return;
+  }
+
+  if (a.t === "gate"){
+    box(root, x, SLAB_Y, z, w, 5.2, d, M.eqDark);
+    rec.top = SLAB_Y + 5.2;
+    return;
+  }
+
+  /* piso demarcado, comum a room e zone */
+  var fill = floorPlate(root, x, z, w - 0.1, d - 0.1, SLAB_Y + 0.012,
+                        a.t === "room" ? P.room : P.zone, a.t === "room" ? 1 : 0.92);
+  fill.userData.area = a.id;
+  fill.receiveShadow = false;
+  pickables.push(fill); rec.meshes.push(fill); rec.fill = fill;
+  rec.top = SLAB_Y + 0.05;
+
+  if (a.t === "room"){
+    var th = 0.22, HH = 2.65;
+    box(root, x, SLAB_Y, z - d/2 + th/2, w, HH, th, M.wall);
+    box(root, x, SLAB_Y, z + d/2 - th/2, w, HH, th, M.wall);
+    box(root, x - w/2 + th/2, SLAB_Y, z, th, HH, d - th*2, M.wall);
+    box(root, x + w/2 - th/2, SLAB_Y, z, th, HH, d - th*2, M.wall);
+    rec.top = SLAB_Y + HH;
+  } else {
+    dashedRect(root, x, z, w - 0.35, d - 0.35, SLAB_Y + 0.02, M.edgeSoft, 1.15);
+    if (a.mez){
+      box(root, x, SLAB_Y + 3.0, z, w, 0.28, d, M.eq, {edge:true, shadow:false});
+      rec.top = SLAB_Y + 3.3;
+      fill.position.y = SLAB_Y + 3.30;
+    }
+  }
+  if (a.eq) equip(root, a, a.eq);
+});
+
+flushEdges(root, M.edge);
+
+/* =====================  RÓTULOS  ===================== */
+var labelHost = document.getElementById("labels");
+var labels = [];
+AREAS.forEach(function(a){
+  if (a.t === "hall" || a.t === "gate") return;
+  var rec = areaByI[a.id];
+  if (rec.w * rec.d < 9) return;
+  var el = document.createElement("div");
+  el.className = "lb";
+  var stg = a.st ? STAGES.filter(function(s){return s.id===a.st;})[0] : null;
+  el.innerHTML = (stg ? "<b>" + stg.n + "</b>" : "") + a.nm;
+  labelHost.appendChild(el);
+  labels.push({el:el, v:new THREE.Vector3(rec.x, (rec.top||1) + 0.6, rec.z), area:a.id, big: rec.w*rec.d > 60});
+});
+
+
+/* =====================  FLUXO DE MATERIAL  ===================== */
+function curveFrom(pts, y){
+  var v = pts.map(function(p){ return new THREE.Vector3(mx(p[0]), y, mz(p[1])); });
+  return new THREE.CatmullRomCurve3(v, false, "catmullrom", 0.35);
+}
+var flows = [];
+FLOWS.forEach(function(f, idx){
+  var c = curveFrom(f.p, SLAB_Y + 0.55);
+  var g = new THREE.BufferGeometry().setFromPoints(c.getPoints(80));
+  gFlow.add(new THREE.Line(g, M.flowLine));
+  var nNodes = 2 + (idx % 2);
+  var carts = [];
+  for (var i = 0; i < nNodes; i++){
+    var m = new THREE.Mesh(BOX, M.accent);
+    m.scale.set(0.65, 0.5, 0.65);
+    gFlow.add(m);
+    carts.push({m:m, t:(i / nNodes) + Math.random() * 0.1, sp:0.026 + Math.random() * 0.014});
+  }
+  flows.push({c:c, carts:carts, from:f.from, to:f.to});
+});
+
+/* =====================  VEÍCULOS  ===================== */
+function forklift(){
+  var g = new THREE.Group();
+  var b = new THREE.Mesh(BOX, M.accent); b.scale.set(1.15, 0.85, 2.0); b.position.y = 0.72; g.add(b);
+  var c = new THREE.Mesh(BOX, M.eqDark); c.scale.set(1.0, 0.75, 0.85); c.position.set(0, 1.5, -0.4); g.add(c);
+  var m = new THREE.Mesh(BOX, M.eqDark); m.scale.set(0.16, 2.3, 0.16);
+  m.position.set(-0.4, 1.4, 1.05); g.add(m);
+  var m2 = m.clone(); m2.position.x = 0.4; g.add(m2);
+  var fk = new THREE.Mesh(BOX, M.eq); fk.scale.set(1.0, 0.12, 1.1); fk.position.set(0, 0.35, 1.6); g.add(fk);
+  g.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+  return g;
+}
+function truck(){
+  var g = new THREE.Group();
+  var cab = new THREE.Mesh(BOX, M.accent); cab.scale.set(2.5, 2.4, 2.6); cab.position.set(0, 1.6, 3.0); g.add(cab);
+  var bx = new THREE.Mesh(BOX, M.truck); bx.scale.set(2.6, 3.0, 8.4); bx.position.set(0, 2.0, -2.0); g.add(bx);
+  var ch = new THREE.Mesh(BOX, M.eqDark); ch.scale.set(2.3, 0.5, 11.4); ch.position.set(0, 0.45, 0.4); g.add(ch);
+  g.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+  return g;
+}
+var vehicles = [];
+function addVehicle(kind, routeKey, speed){
+  var obj = kind === "truck" ? truck() : forklift();
+  gVeh.add(obj);
+  vehicles.push({o:obj, c:curveFrom(ROUTES[routeKey], SLAB_Y), t:Math.random(), sp:speed, loop:true});
+}
+addVehicle("fork", "empilhadeira1", 0.020);
+addVehicle("fork", "empilhadeira2", 0.014);
+addVehicle("truck", "caminhao", 0.010);
+
+/* =====================  WIP: PAINÉIS EM PROCESSO  ===================== */
+var WIP_AREAS = ["mec","s1me","s2me","s3me","s1id","s2id","pequenos","teste","acab","embal","comp","barr","gavetas"];
+var panels = [];
+WIP_AREAS.forEach(function(id){
+  var rec = areaByI[id]; if (!rec) return;
+  var cols = Math.max(2, Math.floor(rec.w / 2.6));
+  var rows = Math.max(1, Math.floor(rec.d / 3.4));
+  var n = Math.min(cols * rows, 14);
+  for (var i = 0; i < n; i++){
+    var cx = rec.x - rec.w/2 + 1.6 + (i % cols) * ((rec.w - 3.0) / Math.max(1, cols - 1));
+    var cz = rec.z - rec.d/2 + 1.8 + Math.floor(i / cols) * ((rec.d - 3.2) / Math.max(1, rows - 1));
+    if (!isFinite(cx) || !isFinite(cz)) continue;
+    var g = new THREE.Group(); g.position.set(cx, SLAB_Y, cz);
+    var body = new THREE.Mesh(BOX, M.panel);
+    body.scale.set(0.85, 2.05, 0.62); body.position.y = 1.02;
+    body.castShadow = true; body.receiveShadow = true; g.add(body);
+    var door = new THREE.Mesh(BOX, M.eqDark);
+    door.scale.set(0.72, 1.7, 0.04); door.position.set(0, 1.02, 0.33); g.add(door);
+    var bar = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({color:P.select}));
+    bar.scale.set(0.06, 0.4, 0.06); bar.position.set(0.47, 0.6, 0.0); g.add(bar);
+    gWip.add(g);
+    panels.push({g:g, bar:bar, area:id, slot:i, p:Math.random(), sp:0.05 + Math.random()*0.09});
+  }
+});
+
+/* =====================  PESSOAS  ===================== */
+var PEOPLE_AREAS = ["mec","s1me","s2me","s3me","s1id","s2id","pequenos","teste","acab","comp","gavetas","almox","barr","corte","embal"];
+var people = [];
+PEOPLE_AREAS.forEach(function(id){
+  var rec = areaByI[id]; if (!rec) return;
+  var n = Math.max(1, Math.round(rec.w * rec.d / 90));
+  for (var i = 0; i < n; i++){
+    var g = new THREE.Group();
+    var b = new THREE.Mesh(BOX, M.person); b.scale.set(0.42, 1.15, 0.30); b.position.y = 0.58; g.add(b);
+    var h = new THREE.Mesh(BOX, M.eqDark); h.scale.set(0.30, 0.26, 0.26); h.position.y = 1.30; g.add(h);
+    g.position.set(rec.x + (Math.random()-0.5)*(rec.w-2), SLAB_Y, rec.z + (Math.random()-0.5)*(rec.d-2));
+    gPeople.add(g);
+    people.push({g:g, rec:rec, tx:g.position.x, tz:g.position.z, wait:Math.random()*4});
+  }
+});
+
+/* =====================  ALARMES (ISA-18.2)  ===================== */
+var beacons = {};
+function beaconFor(id){
+  if (beacons[id]) return beacons[id];
+  var rec = areaByI[id]; if (!rec) return null;
+  var g = new THREE.Group(); g.position.set(rec.x, (rec.top || 1) + 0.2, rec.z);
+  var geo = new THREE.CylinderGeometry(0.001, 1.5, 7.5, 4, 1, true);
+  var m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+    color:P.alarm, transparent:true, opacity:0.16, side:THREE.DoubleSide, depthWrite:false}));
+  m.position.y = 3.75; g.add(m);
+  var ring = new THREE.Mesh(new THREE.RingGeometry(1.4, 1.9, 24),
+    new THREE.MeshBasicMaterial({color:P.alarm, transparent:true, opacity:0.7, side:THREE.DoubleSide}));
+  ring.rotation.x = -Math.PI/2; ring.position.y = -0.14; g.add(ring);
+  gAlarm.add(g);
+  beacons[id] = {g:g, cone:m, ring:ring};
+  return beacons[id];
+}
+
+/* =====================  ESTADO / SIMULAÇÃO  ===================== */
+var ST = {};
+STAGES.forEach(function(s, i){
+  ST[s.id] = {
+    id:s.id, n:s.n, nm:s.nm, mod:s.mod,
+    wip:2 + Math.floor(Math.random()*9),
+    cap:12, oee:78 + Math.round(Math.random()*16), otif:88 + Math.round(Math.random()*10),
+    tak:Math.round(38 + Math.random()*26), status:"ok", alarms:[], ops:[]
+  };
+});
+var OP_PREFIX = ["OP-2601", "OP-2602", "OP-2603", "OP-2604"];
+function seedOrders(){
+  STAGES.forEach(function(s, i){
+    var st = ST[s.id]; st.ops = [];
+    var k = Math.min(4, Math.max(1, Math.round(st.wip/3)));
+    for (var j = 0; j < k; j++){
+      st.ops.push({
+        cod: OP_PREFIX[j % 4] + String(120 + i*7 + j*3),
+        cli: ["Alfa Energia","Beta Saneamento","Celta Papel","Delta Motores","Gama Mineração","Épsilon Celulose","Fênix Distribuidora"][(i*3+j) % 7],
+        qtd: 1 + ((i + j) % 6),
+        pr: Math.random(),
+        dias: 1 + ((i*2 + j*5) % 14)
+      });
+    }
+  });
+}
+seedOrders();
+
+var ALARM_LIB = [
+  {p:1, t:"Ordem parada além do takt", d:"Tempo de ciclo excedeu 150% do padrão"},
+  {p:2, t:"Falta de item na frente",   d:"Requisição pendente no almoxarifado"},
+  {p:2, t:"Retrabalho reincidente",    d:"Terceira reprovação no mesmo lote"},
+  {p:1, t:"Recurso indisponível",      d:"Bancada bloqueada por manutenção"},
+  {p:3, t:"Fila acima do limite",      d:"WIP ultrapassou o teto do kanban"}
+];
+var AREA_OF_STAGE = {};
+AREAS.forEach(function(a){ if (a.st){ (AREA_OF_STAGE[a.st] = AREA_OF_STAGE[a.st] || []).push(a.id); } });
+
+function raiseAlarm(stageId){
+  var st = ST[stageId]; if (!st || st.alarms.length > 2) return;
+  var lib = ALARM_LIB[Math.floor(Math.random()*ALARM_LIB.length)];
+  st.alarms.push({p:lib.p, t:lib.t, d:lib.d, at:clockStr(), ack:false});
+  recomputeStatus(stageId);
+}
+function recomputeStatus(stageId){
+  var st = ST[stageId];
+  var top = 9;
+  st.alarms.forEach(function(a){ if (a.p < top) top = a.p; });
+  st.status = top === 9 ? (st.wip > st.cap ? "warn" : "ok") : (top === 1 ? "alarm" : "warn");
+}
+
+/* relógio de turno */
+var simMin = 6 * 60, speed = 1;
+function clockStr(){
+  var h = Math.floor(simMin/60) % 24, m = Math.floor(simMin % 60);
+  return (h<10?"0":"") + h + ":" + (m<10?"0":"") + m;
+}
+function turnoStr(){
+  var h = Math.floor(simMin/60) % 24;
+  return h >= 6 && h < 14 ? "TURNO A" : (h >= 14 && h < 22 ? "TURNO B" : "TURNO C");
+}
+
+
+/* =====================  CONTROLES DE CÂMERA  ===================== */
+var drag = null;
+cv.addEventListener("pointerdown", function(e){
+  cv.setPointerCapture(e.pointerId);
+  drag = {x:e.clientX, y:e.clientY, pan:(e.button === 1 || e.shiftKey), moved:0};
+});
+cv.addEventListener("pointermove", function(e){
+  var r = cv.getBoundingClientRect();
+  pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+  pointer.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+  mouseXY.x = e.clientX; mouseXY.y = e.clientY;
+  if (!drag) return;
+  var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  drag.x = e.clientX; drag.y = e.clientY; drag.moved += Math.abs(dx) + Math.abs(dy);
+  if (drag.pan){
+    var k = 0.0016 * VIEW / orb.zoom * 2;
+    var right = new THREE.Vector3().crossVectors(camera.getWorldDirection(new THREE.Vector3()), camera.up).normalize();
+    var fwd = new THREE.Vector3().crossVectors(camera.up, right).normalize();
+    orbGoal.tx -= (right.x * dx + fwd.x * dy) * k * 60;
+    orbGoal.tz -= (right.z * dx + fwd.z * dy) * k * 60;
+  } else {
+    orbGoal.az -= dx * 0.0055;
+    orbGoal.pol = Math.max(0.12, Math.min(1.50, orbGoal.pol + dy * 0.0042));
+  }
+});
+function endDrag(){ drag = null; }
+cv.addEventListener("pointerup", endDrag);
+cv.addEventListener("pointercancel", endDrag);
+cv.addEventListener("wheel", function(e){
+  e.preventDefault();
+  orbGoal.zoom = Math.max(0.42, Math.min(5.5, orbGoal.zoom * (e.deltaY > 0 ? 0.90 : 1.11)));
+}, {passive:false});
+
+/* =====================  PICKING  ===================== */
+var ray = new THREE.Raycaster();
+var pointer = new THREE.Vector2(-9, -9), mouseXY = {x:0, y:0};
+var hovered = null, selected = null;
+var tip = document.getElementById("tip");
+var selRing = new THREE.Mesh(new THREE.RingGeometry(1, 1.14, 4),
+  new THREE.MeshBasicMaterial({color:P.select, transparent:true, opacity:0.9, side:THREE.DoubleSide}));
+selRing.rotation.x = -Math.PI/2; selRing.visible = false; root.add(selRing);
+var selBeam = new THREE.Mesh(new THREE.BoxGeometry(1,1,1),
+  new THREE.MeshBasicMaterial({color:P.select, transparent:true, opacity:0.09, depthWrite:false}));
+selBeam.visible = false; root.add(selBeam);
+
+function pick(){
+  ray.setFromCamera(pointer, camera);
+  var hit = ray.intersectObjects(pickables, false);
+  return hit.length ? hit[0].object.userData.area : null;
+}
+function setHover(id){
+  if (hovered === id) return;
+  hovered = id;
+  if (!id){ tip.style.opacity = 0; document.body.style.cursor = "default"; return; }
+  var rec = areaByI[id], a = rec.a;
+  var stg = a.st ? ST[a.st] : null;
+  document.body.style.cursor = "pointer";
+  tip.innerHTML = "<b>" + a.nm + "</b>" +
+    (stg ? "WIP " + stg.wip + "/" + stg.cap + " · OEE " + stg.oee + "% · takt " + stg.tak + " min"
+         : "<s>Área de apoio · sem ordem em curso</s>") +
+    "<s>" + Math.round(rec.w * rec.d) + " m² · estágio " + (stg ? stg.n : "—") + "</s>";
+  tip.style.opacity = 1;
+}
+cv.addEventListener("click", function(){
+  if (drag && drag.moved > 6) return;
+  var id = pick();
+  select(id);
+});
+
+/* =====================  HUD  ===================== */
+var elStages = document.getElementById("stages");
+var elKpis = document.getElementById("kpis");
+var drawer = document.getElementById("drawer");
+var dwBody = document.getElementById("dwBody");
+
+function buildStageList(){
+  elStages.innerHTML = "";
+  STAGES.forEach(function(s){
+    var st = ST[s.id];
+    var el = document.createElement("div");
+    el.className = "stage"; el.dataset.stage = s.id; el.tabIndex = 0;
+    el.innerHTML = '<n>' + s.n + '</n><div class="nm">' + s.nm + '</div>' +
+      '<div class="wip">' + st.wip + '</div>' +
+      '<div class="bar"><i style="width:' + Math.min(100, st.wip/st.cap*100) + '%"></i></div>' +
+      '<div class="dot"></div>';
+    el.addEventListener("click", function(){ selectStage(s.id); });
+    el.addEventListener("keydown", function(e){ if (e.key === "Enter") selectStage(s.id); });
+    elStages.appendChild(el);
+  });
+}
+function refreshStageList(){
+  STAGES.forEach(function(s){
+    var st = ST[s.id];
+    var el = elStages.querySelector('[data-stage="' + s.id + '"]'); if (!el) return;
+    el.dataset.st = st.status;
+    el.querySelector(".wip").textContent = st.wip;
+    el.querySelector(".bar i").style.width = Math.min(100, st.wip/st.cap*100) + "%";
+  });
+}
+/* A ORDEM importa, e mudou em 2026-08-10. `.kpis` e' o bloco que encolhe quando a faixa aperta —
+   e na ordem antiga os dois primeiros a sobreviver eram `OEE` e `OTIF`, que NAO TEM FONTE nesta
+   base e aparecem como traco, enquanto `Gargalo` e `Expedicao hoje`, que sao medidos, eram
+   cortados. Espaco de tela indo para o que nao existe.
+   Agora os medidos vem primeiro e os dois sem fonte ficam no fim: sao os primeiros a sumir. */
+var KPI_DEFS = [
+  {k:"wip",   u:"WIP total"},
+  {k:"gargalo", u:"Gargalo"},
+  {k:"al",    u:"Alarmes"},
+  {k:"exp",   u:"Expedição hoje"},
+  {k:"oee",   u:"OEE médio"},
+  {k:"otif",  u:"OTIF"}
+];
+function buildKpis(){
+  elKpis.innerHTML = "";
+  KPI_DEFS.forEach(function(d){
+    var el = document.createElement("div");
+    el.className = "kpi"; el.dataset.k = d.k;
+    el.innerHTML = "<u>" + d.u + "</u><v>—</v>";
+    elKpis.appendChild(el);
+  });
+}
+var expedidos = 0;
+window.refreshKpis = refreshKpis;
+function refreshKpis(){
+  var wip = 0, oee = 0, otif = 0, al = 0, worst = null;
+  STAGES.forEach(function(s){
+    var st = ST[s.id];
+    wip += st.wip; oee += st.oee; otif += st.otif; al += st.alarms.length;
+    if (!worst || st.wip / st.cap > ST[worst].wip / ST[worst].cap) worst = s.id;
+  });
+  var n = STAGES.length;
+  function set(k, v, cls){
+    var el = elKpis.querySelector('[data-k="' + k + '"]');
+    el.querySelector("v").textContent = v;
+    el.className = "kpi" + (cls ? " " + cls : "");
+  }
+  /* ## Quatro destes cinco vem do SISTEMA desde 2026-08-10
+   *
+   * Antes os seis saiam do simulador: `wip`, `oee`, `otif`, `al`, `exp` e `gargalo` eram somas
+   * sobre `ST[...]`, que e' o estado inventado da planta. Numa tela dentro do GPlanSIS isso e'
+   * pior que numero ausente — e indistinguivel de medicao, e a faixa fica a dois centimetros do
+   * nome do produto.
+   *
+   * `PISO` chega do pai (`GET /dashboard`, bloco `piso`) e VENCE o simulador quando existe. Os
+   * numeros ficam marcados com `is-medido`; sem resposta, cai no simulado e o `title` diz.
+   *
+   * `oee` e `otif` NAO tem fonte nesta base — sem tempo de maquina, sem motivo de parada, sem
+   * data de promessa por ordem. Eles viram TRACO, e nao um numero do simulador: um `OEE 86%`
+   * numa planta 3D e levado a reuniao como se fosse medicao. */
+  var medido = window.__piso || null;
+
+  if (medido) {
+    set("wip", medido.wip, "is-medido");
+    set("al", medido.alarmes_abertos, medido.alarmes_abertos > 0 ? "is-medido is-alarm" : "is-medido");
+    set("exp", medido.expedicao_hoje, "is-medido");
+    set("gargalo", medido.gargalo_fase
+      ? (medido.gargalo_fase.replace(/_/g, " ") + " (" + medido.gargalo_ops + ")")
+      : "—", "is-medido");
+  } else {
+    /* Enquanto a resposta nao chega: RETICENCIAS, e nao o numero do simulador.
+       Medido em 2026-08-10: o `GET /dashboard` responde em ~3 s, e nesses 3 s a faixa exibia
+       `WIP 83` e `Gargalo 03 Corte` — simulados — para depois trocar por `67` e
+       `LIBERACAO TAF (16)`. Mostrar o falso primeiro e o verdadeiro depois e' a pior ordem
+       possivel: quem olha de relance leva o numero errado, e quem fica ve a tela se corrigir
+       sozinha e passa a nao confiar em nenhum dos dois.
+       E' a mesma regra que a gaveta ja seguia com "Consultando a carteira...". */
+    set("wip", "…", "is-sem");
+    set("al", "…", "is-sem");
+    set("exp", "…", "is-sem");
+    set("gargalo", "…", "is-sem");
+  }
+
+  /* Sem fonte, sempre. Ver o comentario acima. */
+  set("oee", "—", "is-sem");
+  set("otif", "—", "is-sem");
+  var elO = elKpis.querySelector('[data-k="oee"]'), elT = elKpis.querySelector('[data-k="otif"]');
+  if (elO) elO.title = T("sede.gav.sem_oee", "Nao ha tempo de maquina nem parada registrados");
+  if (elT) elT.title = T("sede.gav.sem_otif", "Nao ha data de promessa por ordem nesta base");
+}
+
+function select(areaId){
+  selected = areaId;
+  if (!areaId){ drawer.dataset.open = "false"; selRing.visible = false; selBeam.visible = false;
+    elStages.querySelectorAll(".stage").forEach(function(e){ e.dataset.sel = "false"; }); return; }
+  var rec = areaByI[areaId], a = rec.a;
+  var r = Math.max(rec.w, rec.d) * 0.62;
+  selRing.scale.set(r, r, 1);
+  selRing.position.set(rec.x, SLAB_Y + 0.06, rec.z);
+  selRing.rotation.z = Math.PI/4;
+  selRing.visible = true;
+  selBeam.scale.set(rec.w, 14, rec.d);
+  selBeam.position.set(rec.x, SLAB_Y + 7, rec.z);
+  selBeam.visible = true;
+  elStages.querySelectorAll(".stage").forEach(function(e){ e.dataset.sel = (e.dataset.stage === a.st) ? "true" : "false"; });
+  renderDrawer(a);
+}
+function selectStage(stageId){
+  var ids = AREA_OF_STAGE[stageId] || [];
+  if (!ids.length) return;
+  var best = ids[0], bestA = 0;
+  ids.forEach(function(id){ var r = areaByI[id]; if (r.w*r.d > bestA){ bestA = r.w*r.d; best = id; } });
+  select(best);
+  orbGoal.tx = areaByI[best].x; orbGoal.tz = areaByI[best].z;
+  orbGoal.zoom = Math.max(orbGoal.zoom, 1.7);
+}
+function renderDrawer(a){
+  var st = a.st ? ST[a.st] : null;
+  document.getElementById("dwTag").textContent = st ? ("ESTÁGIO " + st.n) : "ÁREA DE APOIO";
+  document.getElementById("dwName").textContent = a.nm;
+  var rec = areaByI[a.id];
+  document.getElementById("dwMeta").textContent =
+    a.id.toUpperCase() + " · " + Math.round(rec.w) + "×" + Math.round(rec.d) + " m · " +
+    Math.round(rec.w*rec.d) + " m²";
+  var link = st ? (st.mod + "?origem=novasede&area=" + a.id)
+                : ("/ops?origem=novasede&area=" + a.id);
+  window.__estagioAtual = st ? st.id : null;
+  /* Pede a carteira ao pai. So' quando ha estagio: area de apoio nao tem fase, e perguntar por
+     ela devolveria a fabrica inteira. */
+  /* Pede UMA vez por estagio. `select()` roda a cada tique da simulacao, e sem esta guarda o
+     pedido virava um laco de uma requisicao a cada 4 s — medido. */
+  if (st && OPS_CACHE[st.id] === undefined) {
+    OPS_CACHE[st.id] = "pedindo";
+    try {
+      parent.postMessage({ source: "gplansis-twin", type: "acao", acao: "estagio-selecionado",
+                           estagio: st.id }, "*");
+    } catch (err) { /* aberto fora do iframe: a gaveta fica no "consultando", que e honesto */ }
+  }
+  document.getElementById("dwLink").textContent = link;
+  document.getElementById("dwEnter").dataset.link = link;
+
+  var h = "";
+  if (st){
+    h += '<div class="grid2">' +
+      cell("WIP", '<span id="dwWip">…</span>', T("sede.gav.wip_dica",
+        "OPs em montagem cuja fase corrente pertence a este estagio")) +
+      cell(T("sede.gav.avanco", "Avanço"), '<span id="dwAv">…</span>',
+        T("sede.gav.avanco_dica", "Media do avanco declarado das OPs listadas")) +
+      semFonte("OEE", T("sede.gav.sem_oee", "Nao ha tempo de maquina nem parada registrados")) +
+      semFonte("OTIF", T("sede.gav.sem_otif", "Nao ha data de promessa por ordem nesta base")) +
+      '</div>';
+    h += '<div class="sect" id="dwOps">' + corpoDasOrdens(st.id) + '</div>';
+    h += '<div class="sect"><h4>Alarmes ativos</h4>';
+    if (!st.alarms.length){ h += '<div class="op"><em>Nenhum alarme. Estágio dentro do padrão.</em></div>'; }
+    st.alarms.forEach(function(al){
+      var bg = al.p === 1 ? "var(--c-alarm)" : (al.p === 2 ? "var(--c-warn)" : "var(--c-line-2)");
+      h += '<div class="alm"><div class="pri" style="background:' + bg + '">P' + al.p + '</div>' +
+           '<div class="txt">' + al.t + '<s>' + al.d + ' · ' + al.at + '</s></div></div>';
+    });
+    h += '</div>';
+  } else {
+    h += '<div class="sect"><h4>Sobre esta área</h4><div class="op"><em>' +
+         'Área de apoio sem apontamento de produção. O cadastro de ativos e as ocorrências de manutenção ficam no módulo de ativos.' +
+         '</em></div></div>';
+  }
+  dwBody.innerHTML = h;
+  if (st) numerosDoEstagio(st.id);
+  drawer.dataset.open = "true";
+}
+/* O corpo da secao "Ordens em curso", desenhado a partir do CACHE. UM lugar so' de desenho:
+   `select()` chama no redesenho periodico e o handler da mensagem chama quando a resposta chega.
+   Dois desenhistas para a mesma lista foi o que prendeu o "Consultando" na tela. */
+function corpoDasOrdens(estagio){
+  var r = OPS_CACHE[estagio];
+  var h = '<h4>' + T("sede.gav.ordens", "Ordens em curso") +
+          ' <b class="medido">' + T("sede.gav.medido", "medido") + '</b></h4>';
+  if (!r || r === "pedindo"){
+    return h + '<div class="op"><em>' + T("sede.gav.consultando", "Consultando a carteira...") +
+           '</em></div>';
+  }
+  if (r.semFase){
+    h += '<div class="op"><em>' + T("sede.gav.sem_fase",
+         "Este estagio nao tem fase de transformacao no sistema.") + '</em></div>';
+  } else if (!r.itens.length){
+    h += '<div class="op"><em>' + T("sede.gav.nenhuma",
+         "Nenhuma OP em montagem nas fases deste estagio.") + '</em></div>';
+  } else {
+    r.itens.forEach(function(o){
+      /* `<button>` e nao `<div>`: o cartao passou a ABRIR a gaveta da OP (pedido do dono em
+         2026-08-10), e alvo clicavel tem de ser alcancavel por teclado. `data-op` carrega o ULID
+         — o numero nao serve, porque 201 OPs nao tem numero. */
+      h += '<button type="button" class="op op-abre" data-op="' + o.id + '">' +
+           '<b>' + o.numero + '</b><s class="op-proj">' + o.projeto + '</s>' +
+           '<em>' + (o.fim ? T("sede.gav.fim","fim previsto") + " " + o.fim
+                           : T("sede.gav.sem_data","sem data de fim")) + '</em>' +
+           '<div class="pr"><i style="width:' + Math.round((o.avanco||0)*100) + '%"></i></div></button>';
+    });
+    if (r.total > r.itens.length){
+      h += '<div class="op"><em>' + T("sede.gav.mais","e mais") + ' ' +
+           (r.total - r.itens.length) + '</em></div>';
+    }
+  }
+  return h + '<button class="rail-acao rail-acao-forte dw-todas" data-acao="ops-por-fase">' +
+         T("sede.ops_fase","OPs por fase") + '</button>';
+}
+
+/* Os dois numeros do topo, tambem do cache. `...` enquanto nao chegou: `0` diria "nenhuma OP". */
+function numerosDoEstagio(estagio){
+  var r = OPS_CACHE[estagio];
+  var w = document.getElementById("dwWip"), a = document.getElementById("dwAv");
+  if (w) w.textContent = (!r || r === "pedindo") ? "..." : String(r.total);
+  if (a) a.textContent = (!r || r === "pedindo") ? "..."
+      : (r.avancoMedio == null ? "\u2014" : (Math.round(r.avancoMedio*1000)/10).toFixed(1) + "%");
+}
+
+function cell(u, v, dica){
+  return '<div class="cell"' + (dica ? ' title="' + dica + '"' : '') +
+         '><u>' + u + '</u><v>' + v + '</v></div>';
+}
+/* Celula de indicador que NAO TEM FONTE nesta base. Traco e nao zero: zero e uma medicao, e
+   `OEE 0%` numa planta 3D e levado a reuniao como se fosse uma. */
+function semFonte(u, motivo){
+  return '<div class="cell cell-sem" title="' + motivo + '"><u>' + u +
+         '</u><v>—</v></div>';
+}
+/* Traducao com valor de reserva: o dicionario chega do pai por `postMessage`, e antes disso
+   (ou fora do iframe) o texto do arquivo continua valendo. */
+var DIC = {};
+var OPS_CACHE = {};      /* estagio -> resposta da carteira, ou "pedindo" */
+function T(k, padrao){ return DIC[k] || padrao; }
+
+document.getElementById("dwClose").addEventListener("click", function(){ select(null); });
+/* DELEGACAO no corpo da gaveta, e nao listener no botao: `innerHTML` recria o botao a cada
+   redesenho e um listener por instancia morre com ele. Medido: o clique falhava com
+   "element was detached from the DOM, retrying". */
+document.getElementById("dwBody").addEventListener("click", function(ev){
+  var alvo = ev.target.closest ? ev.target : null;
+  if (!alvo) return;
+  try {
+    if (alvo.closest(".dw-todas")) {
+      parent.postMessage({ source: "gplansis-twin", type: "acao", acao: "ops-por-fase",
+                           estagio: window.__estagioAtual }, "*");
+      return;
+    }
+    var cartao = alvo.closest(".op-abre");
+    if (cartao && cartao.dataset.op) {
+      parent.postMessage({ source: "gplansis-twin", type: "acao", acao: "abrir-op",
+                           op: cartao.dataset.op }, "*");
+    }
+  } catch (err) { /* fora do iframe */ }
+});
+document.getElementById("dwEnter").addEventListener("click", function(e){
+  var link = e.currentTarget.dataset.link;
+  try { parent.postMessage({source:"gplansis-twin", type:"navigate", href:link}, "*"); } catch(err){}
+  var b = e.currentTarget.querySelector("span");
+  var old = b.textContent; b.textContent = "Rota emitida ao host";
+  setTimeout(function(){ b.textContent = old; }, 1500);
+});
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape"){ select(null); return; }
+  var step = 0.09;
+  if (e.key === "ArrowLeft")  { orbGoal.az -= step; e.preventDefault(); }
+  if (e.key === "ArrowRight") { orbGoal.az += step; e.preventDefault(); }
+  if (e.key === "ArrowUp")    { orbGoal.pol = Math.min(1.50, orbGoal.pol + step*0.6); e.preventDefault(); }
+  if (e.key === "ArrowDown")  { orbGoal.pol = Math.max(0.12, orbGoal.pol - step*0.6); e.preventDefault(); }
+  if (e.key === "+" || e.key === "=") orbGoal.zoom = Math.min(5.5, orbGoal.zoom * 1.15);
+  if (e.key === "-" || e.key === "_") orbGoal.zoom = Math.max(0.42, orbGoal.zoom / 1.15);
+});
+var hintEl = document.getElementById("hint"), hintTimer = setTimeout(dismissHint, 14000);
+function dismissHint(){ if (hintEl){ hintEl.classList.add("gone"); clearTimeout(hintTimer); hintEl = null; } }
+cv.addEventListener("pointerdown", dismissHint, {once:true});
+
+/* camadas, vistas, tema, velocidade */
+var LAYERS = {flow:gFlow, wip:gWip, people:gPeople, alarm:gAlarm, roof:gRoof, label:null};
+gRoof.visible = false;
+var showLabels = true;
+document.querySelectorAll("[data-layer]").forEach(function(b){
+  b.addEventListener("click", function(){
+    var on = b.getAttribute("aria-pressed") !== "true";
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    var key = b.dataset.layer;
+    if (key === "label"){ showLabels = on; labelHost.style.display = on ? "" : "none"; }
+    else LAYERS[key].visible = on;
+  });
+});
+document.querySelectorAll("[data-view]").forEach(function(b){
+  b.addEventListener("click", function(){
+    document.querySelectorAll("[data-view]").forEach(function(o){ o.setAttribute("aria-pressed","false"); });
+    b.setAttribute("aria-pressed","true");
+    var v = b.dataset.view;
+    if (v === "iso"){ orbGoal.az = Math.PI*0.25; orbGoal.pol = Math.atan(1/Math.SQRT2); orbGoal.zoom = 1; }
+    if (v === "plan"){ orbGoal.az = 0; orbGoal.pol = 1.50; orbGoal.zoom = 1.05; }
+    if (v === "norte"){ orbGoal.az = 0; orbGoal.pol = 0.30; orbGoal.zoom = 1.1; }
+    orbGoal.tx = 0; orbGoal.tz = 0;
+  });
+});
+document.querySelectorAll("footer [data-theme]").forEach(function(b){
+  b.addEventListener("click", function(){
+    document.querySelectorAll("footer [data-theme]").forEach(function(o){ o.setAttribute("aria-pressed","false"); });
+    b.setAttribute("aria-pressed","true");
+    setTheme(b.dataset.theme);
+  });
+});
+window.setTheme = setTheme;
+function setTheme(t){
+  THEME = t; P = PAL[t];
+  document.documentElement.dataset.theme = t;
+  scene.background.setHex(P.bg); scene.fog.color.setHex(P.fog);
+  rebuildMaterials();
+  M.grid.color.setHex(P.edgeSoft);
+  M.flowLine.color.setHex(P.accent);
+  hemi.color.setHex(P.hemi); hemi.groundColor.setHex(P.hemiG); hemi.intensity = P.ambI;
+  sun.intensity = P.dirI;
+  selRing.material.color.setHex(P.select); selBeam.material.color.setHex(P.select);
+  Object.keys(beacons).forEach(function(k){
+    beacons[k].cone.material.color.setHex(P.alarm); beacons[k].ring.material.color.setHex(P.alarm);
+  });
+  panels.forEach(function(p){ p.bar.material.color.setHex(P.select); });
+  AREAS.forEach(function(a){
+    var rec = areaByI[a.id];
+    if (rec.fill) rec.fill.material.color.setHex(a.t === "room" ? P.room : P.zone);
+  });
+}
+document.getElementById("speed").addEventListener("click", function(e){
+  if (e.target.tagName !== "BUTTON") return;
+  this.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed","false"); });
+  e.target.setAttribute("aria-pressed","true");
+  speed = parseFloat(e.target.dataset.s);
+});
+var railLeft = document.getElementById("railLeft"), railToggle = document.getElementById("railToggle");
+railToggle.addEventListener("click", function(){
+  var open = railLeft.dataset.open !== "true";
+  railLeft.dataset.open = open ? "true" : "false";
+  railToggle.textContent = open ? "‹" : "›";
+  railToggle.style.left = open ? "" : "8px";
+});
+
+/* =====================  LOOP  ===================== */
+buildKpis(); buildStageList(); refreshKpis(); refreshStageList();
+resize(); applyCamera();
+
+var clock = new THREE.Clock();
+var tickAcc = 0, drawAcc = 0, tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3();
+
+function tickBusiness(dtMin){
+  simMin += dtMin;
+  STAGES.forEach(function(s, i){
+    var st = ST[s.id];
+    if (Math.random() < 0.02 * dtMin) st.wip = Math.max(0, st.wip + (Math.random() < 0.5 ? -1 : 1));
+    if (st.wip > st.cap + 2) st.wip = st.cap + 2;
+    st.oee = Math.max(58, Math.min(97, st.oee + (Math.random()-0.5) * 0.35 * dtMin));
+    st.otif = Math.max(75, Math.min(99, st.otif + (Math.random()-0.5) * 0.18 * dtMin));
+    if (Math.random() < 0.0016 * dtMin) raiseAlarm(s.id);
+    if (st.alarms.length && Math.random() < 0.010 * dtMin){ st.alarms.shift(); }
+    st.oee = Math.round(st.oee); st.otif = Math.round(st.otif);
+    recomputeStatus(s.id);
+  });
+  if (Math.random() < 0.010 * dtMin) expedidos++;
+  document.getElementById("clk").textContent = clockStr();
+  document.getElementById("turno").textContent = turnoStr();
+  refreshKpis(); refreshStageList();
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  var dt = Math.min(0.05, clock.getDelta());
+  var kv = dt * Math.min(speed, 3);   // ritmo visual
+  var k = kv;                          // atalho para as animacoes
+
+  /* câmera com amortecimento */
+  orb.az += (orbGoal.az - orb.az) * 0.14;
+  orb.pol += (orbGoal.pol - orb.pol) * 0.14;
+  orb.zoom += (orbGoal.zoom - orb.zoom) * 0.16;
+  target.x += (orbGoal.tx - target.x) * 0.12;
+  target.z += (orbGoal.tz - target.z) * 0.12;
+  camera.zoom = orb.zoom; camera.updateProjectionMatrix();
+  applyCamera();
+
+  /* fluxo */
+  if (gFlow.visible) flows.forEach(function(f){
+    f.carts.forEach(function(c){
+      c.t = (c.t + c.sp * k) % 1;
+      f.c.getPointAt(c.t, tmpV);
+      c.m.position.copy(tmpV);
+      f.c.getPointAt((c.t + 0.01) % 1, tmpV2);
+      c.m.rotation.y = Math.atan2(tmpV2.x - tmpV.x, tmpV2.z - tmpV.z);
+      c.m.position.y += Math.sin(c.t * 40) * 0.03;
+    });
+  });
+
+  /* veículos */
+  vehicles.forEach(function(v){
+    v.t = (v.t + v.sp * k) % 1;
+    v.c.getPointAt(v.t, tmpV);
+    v.o.position.copy(tmpV);
+    v.c.getPointAt((v.t + 0.004) % 1, tmpV2);
+    v.o.rotation.y = Math.atan2(tmpV2.x - tmpV.x, tmpV2.z - tmpV.z);
+  });
+
+  /* WIP: um painel visivel por unidade em processo; a barra e o avanco da operacao */
+  if (gWip.visible) panels.forEach(function(p){
+    var st = ST[areaByI[p.area].a.st];
+    var live = st ? p.slot < st.wip : true;
+    p.g.visible = live;
+    if (!live) return;
+    p.p += p.sp * kv;
+    if (p.p > 1) p.p = 0;
+    p.bar.scale.y = 0.12 + p.p * 1.78;
+    p.bar.position.y = 0.14 + p.bar.scale.y / 2;
+    p.bar.material.color.setHex(
+      st && st.status === "alarm" ? P.alarm : (st && st.status === "warn" ? P.warn : P.select));
+  });
+
+  /* pessoas */
+  if (gPeople.visible) people.forEach(function(p){
+    p.wait -= k;
+    if (p.wait <= 0){
+      p.tx = p.rec.x + (Math.random()-0.5) * (p.rec.w - 2);
+      p.tz = p.rec.z + (Math.random()-0.5) * (p.rec.d - 2);
+      p.wait = 2 + Math.random() * 6;
+    }
+    var dx = p.tx - p.g.position.x, dz = p.tz - p.g.position.z;
+    var dd = Math.hypot(dx, dz);
+    if (dd > 0.06){
+      p.g.position.x += dx / dd * Math.min(dd, 1.15 * k);
+      p.g.position.z += dz / dd * Math.min(dd, 1.15 * k);
+      p.g.rotation.y = Math.atan2(dx, dz);
+      p.g.position.y = SLAB_Y + Math.abs(Math.sin(performance.now() * 0.008)) * 0.045;
+    }
+  });
+
+  /* alarmes */
+  var pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.0045);
+  STAGES.forEach(function(s){
+    var st = ST[s.id];
+    (AREA_OF_STAGE[s.id] || []).forEach(function(aid){
+      var b = beacons[aid];
+      if (st.status === "ok"){ if (b) b.g.visible = false; return; }
+      b = beaconFor(aid); if (!b) return;
+      b.g.visible = gAlarm.visible;
+      var col = st.status === "alarm" ? P.alarm : P.warn;
+      b.cone.material.color.setHex(col); b.ring.material.color.setHex(col);
+      b.cone.material.opacity = (st.status === "alarm" ? 0.10 + pulse * 0.16 : 0.09);
+      b.ring.material.opacity = (st.status === "alarm" ? 0.35 + pulse * 0.5 : 0.45);
+      b.ring.scale.setScalar(st.status === "alarm" ? 1 + pulse * 0.12 : 1);
+    });
+  });
+
+  /* seleção */
+  if (selRing.visible){ selRing.rotation.z += dt * 0.35;
+    selRing.material.opacity = 0.55 + 0.35 * pulse; }
+
+  /* hover */
+  if (!drag){ setHover(pick()); }
+  if (hovered){ tip.style.left = Math.min(innerWidth - 250, mouseXY.x + 16) + "px";
+    tip.style.top = (mouseXY.y + 18) + "px"; }
+
+  /* rótulos */
+  if (showLabels){
+    for (var i = 0; i < labels.length; i++){
+      var L = labels[i];
+      tmpV.copy(L.v).project(camera);
+      var vis = tmpV.z < 1 && (L.big || orb.zoom > 1.45);
+      if (!vis){ L.el.style.opacity = 0; L.el.style.visibility = "hidden"; continue; }
+      L.el.style.visibility = "visible";
+      L.el.style.opacity = selected === L.area ? 1 : (L.big ? 0.92 : Math.min(1, (orb.zoom - 1.45) * 2.2));
+      L.el.style.transform = "translate(-50%,-50%) translate(" +
+        Math.round((tmpV.x * 0.5 + 0.5) * innerWidth) + "px," +
+        Math.round((-tmpV.y * 0.5 + 0.5) * innerHeight) + "px)";
+    }
+  }
+
+  /* simulacao de negocio: base de 1 minuto de planta por segundo real */
+  tickAcc += dt;
+  if (tickAcc > 0.25){ tickBusiness(tickAcc * speed); tickAcc = 0; }
+  drawAcc += dt;
+  /* O REDESENHO PERIODICO DA GAVETA FOI REMOVIDO em 2026-08-10.
+     Ele reconstruia `dwBody.innerHTML` a cada 1,1 s para atualizar WIP, OEE e Takt SIMULADOS —
+     numeros que agora nao existem mais ali: WIP e Avanco vem da carteira (`GET /ops`), e OEE e
+     OTIF viraram traco porque nao ha fonte nesta base.
+     O que sobrava era churn: o botao "OPs por fase" era destruido e recriado duas vezes por
+     segundo. Medido — o clique falhava com "element was detached from the DOM, retrying", e o
+     foco de quem navega por teclado nao tinha onde parar.
+     A gaveta agora redesenha quando o ESTAGIO muda ou quando a carteira responde, que sao os
+     dois momentos em que o conteudo dela muda de verdade. */
+  drawAcc = 0;
+
+  renderer.render(scene, camera);
+}
+
+/* enquadramento inicial e partida */
+orb.zoom = 0.58;
+setTimeout(function(){ orbGoal.zoom = 1.5; }, 240);
+animate();
+/* A cena esta montada: agora `setTheme` pode tocar materiais e luzes. Ate' aqui o tema so'
+   existia como atributo — e era por isso que a planta ficava branca num sistema escuro. */
+window.__cenaPronta = true;
+if (window.__temaDesejado && window.__temaDesejado !== THEME) setTheme(window.__temaDesejado);
+setTimeout(function(){ document.getElementById("boot").classList.add("gone"); }, 620);
+
+/* ponte de integração — o host injeta telemetria real por aqui */
+window.GPlanSIS = {
+  push: function(payload){                      // {stage, wip, oee, otif, status, alarms[]}
+    var st = ST[payload.stage]; if (!st) return;
+    ["wip","oee","otif","tak"].forEach(function(f){ if (payload[f] !== undefined) st[f] = payload[f]; });
+    if (payload.alarms) st.alarms = payload.alarms;
+    recomputeStatus(payload.stage);
+    refreshKpis(); refreshStageList();
+  },
+  focus: function(stageId){ selectStage(stageId); },
+  theme: setTheme,
+  layout: {areas:AREAS, stages:STAGES, scale:S}
+};
+addEventListener("message", function(e){
+  var d = e.data;
+  if (d && d.source === "gplansis-host" && d.type === "telemetry") window.GPlanSIS.push(d.payload);
+});
+
+</script>
+<script src="twin-enhancements.js"></script></body>
+</html>
+
+
+

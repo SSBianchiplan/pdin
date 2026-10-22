@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Entrar · GPlanSiS|PDIN</title>
+<meta name="theme-color" content="#0d1117">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PDIN">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('pdin-theme')||'dark';}catch(e){}</script>
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--line:#30363d;--ink:#e6edf3;--ink2:#8b949e;--accent:#f0883e;--accent-ink:#0d1117;--info:#58a6ff;--danger:#f85149;--danger-soft:#f8514926;--ok:#3fb950;--sans:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;color-scheme:dark}
+html[data-theme="light"]{--bg:#f6f8fa;--bg2:#fff;--bg3:#eaeef2;--line:#d0d7de;--ink:#1f2328;--ink2:#656d76;--accent:#bc4c00;--accent-ink:#fff;--info:#0969da;--danger:#cf222e;--danger-soft:#cf222e18;--ok:#1a7f37;color-scheme:light}
+*{box-sizing:border-box}
+html,body{min-height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);display:grid;place-items:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom));min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
+.card{width:100%;max-width:380px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:28px 24px}
+.brand{display:flex;gap:12px;align-items:center;margin-bottom:22px}
+.mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#f0883e,#bc4c00);color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px;letter-spacing:.5px;flex-shrink:0}
+.brand b{font-size:17px}.brand b span{color:var(--accent)}
+.brand small{display:block;color:var(--ink2);font-size:12px}
+h1{font-size:18px;margin:0 0 4px}
+p.sub{color:var(--ink2);margin:0 0 18px;font-size:13px}
+label{display:block;margin:0 0 14px;font-size:12px;color:var(--ink2)}
+input[type=email],input[type=password],input[type=text]{display:block;width:100%;margin-top:5px;padding:11px 12px;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+input:focus-visible,button:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.check{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:13px;margin:4px 0 18px;cursor:pointer}
+.check input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+button{width:100%;padding:12px;font:inherit;font-weight:600;font-size:15px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.err{min-height:20px;margin:12px 0 0;color:var(--danger);font-size:13px}
+.err:not(:empty){background:var(--danger-soft);padding:8px 10px;border-radius:6px}
+.hint{font-size:12px;color:var(--ink2);margin:-6px 0 14px}
+.pw{position:relative}.pw input{padding-right:64px}
+.pw .show{position:absolute;right:6px;bottom:6px;width:auto;padding:6px 8px;font-size:12px;font-weight:500;background:var(--bg3);color:var(--ink2)}
+footer{margin-top:18px;text-align:center;color:var(--ink2);font-size:11px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="card">
+ <div class="brand"><span class="mark">PD</span><div><b>GPlanSiS<span>|PDIN</span></b><small>Planejamento Digital da Indústria</small></div></div>
+
+ <form id="login" novalidate>
+  <h1>Entrar</h1>
+  <p class="sub">Use o e-mail e a senha cadastrados pelo administrador.</p>
+  <label>E-mail<input type="email" name="email" autocomplete="username" inputmode="email" required autofocus></label>
+  <label class="pw">Senha<input type="password" name="password" autocomplete="current-password" required><button type="button" class="show" data-show aria-label="Mostrar senha">mostrar</button></label>
+  <label class="check"><input type="checkbox" name="remember"> Manter conectado neste aparelho (30 dias)</label>
+  <button type="submit">Entrar</button>
+  <p class="err" role="alert"></p>
+ </form>
+
+ <form id="change" hidden novalidate>
+  <h1>Defina sua senha</h1>
+  <p class="sub">Você entrou com uma senha provisória. Escolha uma senha pessoal para continuar.</p>
+  <input type="hidden" name="current">
+  <label class="pw">Nova senha<input type="password" name="new" autocomplete="new-password" minlength="10" required><button type="button" class="show" data-show aria-label="Mostrar senha">mostrar</button></label>
+  <p class="hint">Mínimo de 10 caracteres, com maiúsculas, minúsculas e números.</p>
+  <label>Repita a nova senha<input type="password" name="confirm" autocomplete="new-password" required></label>
+  <button type="submit">Salvar e continuar</button>
+  <p class="err" role="alert"></p>
+ </form>
+ <footer><a href="/" style="color:inherit">← Conhecer o PDIN</a> · Acesso restrito · GPlanSiS</footer>
+</main>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const next=(()=>{const n=new URLSearchParams(location.search).get('next')||'/';return /^\/(?!\/)[^\\]*$/.test(n)?n:'/';})();
+async function post(path,body){const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),credentials:'same-origin'});let j=null;try{j=await r.json();}catch{}if(!r.ok)throw Error(typeof j?.detail==='string'?j.detail:(r.status===422?'Preencha os campos corretamente.':'Falha '+r.status));return j;}
+document.querySelectorAll('[data-show]').forEach(b=>b.addEventListener('click',()=>{const i=b.previousElementSibling;const t=i.type==='password';i.type=t?'text':'password';b.textContent=t?'ocultar':'mostrar';}));
+fetch('/api/auth/me',{credentials:'same-origin'}).then(r=>{if(r.ok)return r.json();}).then(u=>{if(u&&!u.must_change)location.replace(next);}).catch(()=>{});
+$('#login').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,err=f.querySelector('.err'),btn=f.querySelector('button[type=submit]');err.textContent='';
+ const email=f.email.value.trim(),password=f.password.value;if(!email||!password){err.textContent='Informe e-mail e senha.';return;}
+ btn.disabled=true;btn.textContent='Entrando…';
+ try{const r=await post('/api/auth/login',{email,password,remember:f.remember.checked});
+  if(r.user.must_change){f.hidden=true;const c=$('#change');c.current.value=password;c.hidden=false;c.new.focus();}else location.replace(next);}
+ catch(x){err.textContent=x.message;f.password.select();}finally{btn.disabled=false;btn.textContent='Entrar';}});
+$('#change').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,err=f.querySelector('.err'),btn=f.querySelector('button[type=submit]');err.textContent='';
+ if(f.new.value!==f.confirm.value){err.textContent='As senhas não conferem.';return;}
+ btn.disabled=true;try{await post('/api/auth/password',{current:f.current.value,new:f.new.value});location.replace(next);}catch(x){err.textContent=x.message;}finally{btn.disabled=false;}});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body>
+</html>

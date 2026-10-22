@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GPlanSiS|PDIN · Supervisório 3D, MES, APS, PLM, PCP e Almoxarifado</title>
+<meta name="description" content="Gêmeo digital 3D em runtime ligado ao chão de fábrica: supervisório com telemetria, MES com apontamento real, APS com capacidade finita, PLM, PCP Kanban e almoxarifado com picking — em uma única plataforma.">
+<meta name="theme-color" content="#0d1117">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GPlanSiS|PDIN · Planejamento Digital da Indústria">
+<meta property="og:description" content="Supervisório 3D runtime, MES, APS, PLM, PCP e Almoxarifado integrados. Da engenharia ao chão de fábrica, em tempo real.">
+<meta property="og:image" content="https://pdin.gplansis.com/landing/supervisorio.webp">
+<meta property="og:url" content="https://pdin.gplansis.com/">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" as="image" href="landing/supervisorio.webp" fetchpriority="high">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('pdin-theme')||'dark';}catch(e){}</script>
+<style>
+/* Tokens idênticos ao app.css: o visitante vê o mesmo sistema que vai usar. */
+:root{
+ --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#2d333b;--inset:#010409;
+ --line:#30363d;--line2:#21262d;--line3:#3d444d;
+ --ink:#e6edf3;--ink2:#8b949e;--ink3:#6e7681;
+ --accent:#f0883e;--accent2:#bc4c00;--accent-ink:#0d1117;--accent-soft:#f0883e22;
+ --info:#58a6ff;--info-soft:#388bfd26;--ok:#3fb950;--ok-soft:#2ea04326;--warn:#d29922;--warn-soft:#bb800926;--danger:#f85149;--danger-soft:#f8514926;--purple:#a371f7;--purple-soft:#a371f726;
+ --glow:rgba(240,136,62,.18);--grid:rgba(139,148,158,.07);--glass:rgba(22,27,34,.72);
+ --shadow:0 1px 0 rgba(1,4,9,.6),0 24px 60px rgba(1,4,9,.55);
+ --mono:Consolas,'JetBrains Mono','Cascadia Mono',ui-monospace,monospace;--sans:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+ --r:10px;--wrap:1200px;color-scheme:dark;
+}
+html[data-theme="light"]{
+ --bg:#f6f8fa;--bg2:#ffffff;--bg3:#eaeef2;--bg4:#dfe4ea;--inset:#eef1f4;
+ --line:#d0d7de;--line2:#e3e8ee;--line3:#afb8c1;
+ --ink:#1f2328;--ink2:#656d76;--ink3:#8c959f;
+ --accent:#bc4c00;--accent2:#953800;--accent-ink:#ffffff;--accent-soft:#bc4c0018;
+ --info:#0969da;--info-soft:#0969da18;--ok:#1a7f37;--ok-soft:#1a7f3718;--warn:#9a6700;--warn-soft:#9a670018;--danger:#cf222e;--danger-soft:#cf222e18;--purple:#8250df;--purple-soft:#8250df18;
+ --glow:rgba(188,76,0,.10);--grid:rgba(31,35,40,.05);--glass:rgba(255,255,255,.8);
+ --shadow:0 1px 0 rgba(31,35,40,.04),0 24px 60px rgba(140,149,159,.28);color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+img{max-width:100%;display:block}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--info);outline-offset:3px;border-radius:4px}
+.wrap{width:100%;max-width:var(--wrap);margin:0 auto;padding:0 24px}
+.mono{font-family:var(--mono)}
+.eyebrow{font:600 12px var(--mono);letter-spacing:2.2px;text-transform:uppercase;color:var(--accent)}
+h1,h2,h3{margin:0;line-height:1.12;letter-spacing:-.02em}
+h2{font-size:clamp(28px,3.6vw,44px);font-weight:700}
+.lead{font-size:clamp(16px,1.5vw,19px);color:var(--ink2);max-width:640px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:8px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid var(--line);background:var(--bg3);color:var(--ink);cursor:pointer;transition:transform .15s,filter .15s,background .15s,border-color .15s;white-space:nowrap}
+.btn:hover{background:var(--bg4);border-color:var(--line3)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 8px 28px var(--glow),inset 0 1px 0 rgba(255,255,255,.18)}
+.btn.primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn.big{padding:16px 28px;font-size:16px}
+.btn .arrow{transition:transform .15s}.btn:hover .arrow{transform:translateX(3px)}
+
+/* ---- navegação */
+.nav{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid transparent;transition:border-color .2s}
+.nav.scrolled{border-bottom-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:20px;height:64px}
+.brand{display:flex;gap:10px;align-items:center;text-decoration:none;flex-shrink:0}
+.mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#f0883e,#bc4c00);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;letter-spacing:.5px;box-shadow:0 4px 14px var(--glow)}
+.brand b{font-size:16px;letter-spacing:-.01em}.brand b span{color:var(--accent)}
+.nav-links{display:flex;gap:4px;margin-left:12px}
+.nav-links a{font-size:14px;color:var(--ink2);text-decoration:none;padding:7px 10px;border-radius:6px}
+.nav-links a:hover{color:var(--ink);background:var(--bg3)}
+.nav-cta{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-cta .btn{padding:9px 14px;font-size:14px}
+.theme{width:38px;height:38px;padding:0;border-radius:8px;border:1px solid var(--line);background:transparent;cursor:pointer;color:var(--ink2);display:grid;place-items:center}
+.theme:hover{color:var(--ink);background:var(--bg3)}
+
+/* ---- hero */
+.hero{position:relative;padding:72px 0 40px;isolation:isolate;overflow-x:clip} /* o brilho de 900 px não pode alargar a página no celular */
+.hero::before{content:'';position:absolute;inset:0;z-index:-2;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 80% 70% at 50% 30%,#000 40%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 30%,#000 40%,transparent 100%)}
+.hero::after{content:'';position:absolute;z-index:-1;width:900px;height:600px;left:50%;top:-200px;transform:translateX(-50%);background:radial-gradient(closest-side,var(--glow),transparent);pointer-events:none}
+.hero-copy{text-align:center;max-width:900px;margin:0 auto}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;border:1px solid var(--line);background:var(--bg2);border-radius:999px;font-size:13px;color:var(--ink2);margin-bottom:22px}
+.pill b{background:var(--ok-soft);color:var(--ok);font:600 11px var(--mono);letter-spacing:1px;padding:3px 8px;border-radius:999px}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 var(--ok);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.hero h1{font-size:clamp(36px,6vw,72px);font-weight:800;letter-spacing:-.035em}
+.hero h1 .grad{background:linear-gradient(120deg,var(--accent) 10%,#ffb77a 50%,var(--accent) 90%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% auto;animation:shine 6s linear infinite}
+html[data-theme="light"] .hero h1 .grad{background-image:linear-gradient(120deg,var(--accent2),var(--accent) 50%,var(--accent2))}
+@keyframes shine{to{background-position:200% center}}
+.hero .lead{margin:22px auto 32px;text-align:center}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:28px}
+.chip{font:12px var(--mono);letter-spacing:.4px;color:var(--ink2);border:1px solid var(--line);background:var(--bg2);border-radius:999px;padding:5px 11px}
+
+.stage{position:relative;margin:56px auto 0;max-width:1120px;perspective:1600px}
+.frame{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--bg2);box-shadow:var(--shadow);overflow:hidden;transform:rotateX(8deg) scale(.98);transform-origin:50% 0;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.frame.in{transform:none}
+.frame-bar{display:flex;align-items:center;gap:7px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg2)}
+.frame-bar i{width:11px;height:11px;border-radius:50%;background:var(--bg4)}
+.frame-bar i:nth-child(1){background:#f85149aa}.frame-bar i:nth-child(2){background:#d29922aa}.frame-bar i:nth-child(3){background:#3fb950aa}
+.frame-bar span{margin-left:10px;font:12px var(--mono);color:var(--ink3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.frame img{width:100%;height:auto;aspect-ratio:1665/828;object-fit:cover;object-position:top;background:var(--bg)}
+.float{position:absolute;z-index:3;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:10px;padding:10px 14px;box-shadow:var(--shadow);font-size:13px;animation:bob 6s ease-in-out infinite}
+.float small{display:block;font:10.5px var(--mono);letter-spacing:1px;color:var(--ink2);text-transform:uppercase}
+.float b{font:600 20px var(--mono);letter-spacing:-.02em}
+.float .u{font:12px var(--mono);color:var(--ink2);margin-left:3px}
+.float .ok{color:var(--ok)}.float .warn{color:var(--warn)}
+.f1{left:-28px;top:26%}.f2{right:-24px;top:14%;animation-delay:-2s}.f3{right:5%;bottom:-22px;animation-delay:-4s}.f4{left:6%;bottom:-18px;animation-delay:-3s}
+.spark{display:block;margin-top:4px}
+@keyframes bob{50%{transform:translateY(-8px)}}
+
+/* ---- faixa de números */
+.stats{margin-top:88px;display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:var(--r);background:var(--bg2);overflow:hidden}
+.stat{padding:24px 22px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font:700 clamp(26px,3vw,36px) var(--mono);letter-spacing:-.03em;color:var(--ink)}
+.stat span{font-size:13.5px;color:var(--ink2)}
+
+/* ---- seções */
+section{padding:110px 0 0}
+.head{max-width:760px;margin-bottom:44px}
+.head.center{text-align:center;margin-left:auto;margin-right:auto}
+.head.center .lead{margin-left:auto;margin-right:auto}
+.head h2{margin:12px 0 16px}
+
+/* ---- vitrine de módulos */
+.tabs{display:flex;gap:6px;padding:6px;border:1px solid var(--line);background:var(--bg2);border-radius:12px;overflow-x:auto;scrollbar-width:none;margin-bottom:28px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:max-content;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--ink2);font-weight:600;font-size:14px;cursor:pointer;position:relative;overflow:hidden}
+.tab:hover{color:var(--ink);background:var(--bg3)}
+.tab[aria-selected="true"]{color:var(--ink);background:var(--bg3);border-color:var(--line)}
+.tab[aria-selected="true"] i{color:var(--accent)}
+.tab i{font-style:normal;color:var(--ink3)}
+.tab .bar{position:absolute;left:0;bottom:0;height:2px;background:var(--accent);width:0}
+.tab[aria-selected="true"] .bar{animation:fill var(--dwell,9s) linear forwards}
+.tabs.paused .bar{animation-play-state:paused}
+@keyframes fill{to{width:100%}}
+.panel{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px;align-items:center}
+.panel[hidden]{display:none}
+.panel.enter .copy,.panel.enter .shot{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.panel.enter .shot{animation-delay:.06s}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.copy .tag{display:inline-block;font:600 11px var(--mono);letter-spacing:1.6px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:4px 10px;margin-bottom:14px}
+.copy h3{font-size:clamp(24px,2.6vw,32px);margin-bottom:14px}
+.copy p{color:var(--ink2);margin:0 0 18px}
+.checks{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:10px}
+.checks li{position:relative;padding-left:28px;font-size:15px}
+.checks li::before{content:'';position:absolute;left:0;top:3px;width:18px;height:18px;border-radius:5px;background:var(--ok-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%233fb950' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+.copy .links{display:flex;gap:10px;flex-wrap:wrap}
+.shot{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg2);box-shadow:var(--shadow)}
+.shot img{width:100%;height:auto;aspect-ratio:1656/1024;object-fit:cover;object-position:top left}
+
+/* ---- fio digital */
+.thread{display:grid;grid-template-columns:repeat(6,1fr);gap:0;position:relative;margin-top:10px}
+.thread::before{content:'';position:absolute;left:8%;right:8%;top:34px;height:2px;background:repeating-linear-gradient(90deg,var(--accent) 0 10px,transparent 10px 18px);opacity:.55;animation:flow 1.4s linear infinite;background-size:18px 2px}
+@keyframes flow{to{background-position:18px 0}}
+.node{text-align:center;padding:0 8px;position:relative}
+.node .dot{width:68px;height:68px;margin:0 auto 14px;border-radius:16px;border:1px solid var(--line);background:var(--bg2);display:grid;place-items:center;font-size:24px;color:var(--accent);position:relative;box-shadow:0 0 0 6px var(--bg)}
+.node b{display:block;font-size:15px;margin-bottom:4px}
+.node span{font-size:13px;color:var(--ink2);display:block}
+.loop{margin:28px auto 0;max-width:720px;text-align:center;font-size:14px;color:var(--ink2);padding:12px 18px;border:1px dashed var(--line3);border-radius:10px}
+.loop b{color:var(--ink)}
+
+/* ---- diferenciais */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--bg2);padding:24px;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--line3);transform:translateY(-2px)}
+.card .ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-size:18px;margin-bottom:16px}
+.card h3{font-size:17px;margin-bottom:8px;letter-spacing:-.01em}
+.card p{margin:0;color:var(--ink2);font-size:14.5px}
+
+/* ---- CTA final + formulário */
+.final{margin-top:110px;position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:radial-gradient(ellipse 70% 90% at 0% 0%,var(--glow),transparent 60%),var(--bg2)}
+.final-in{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:44px;padding:56px}
+.final h2{margin:12px 0 16px}
+.final .lead{margin-bottom:26px}
+.promise{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.promise li{display:flex;gap:12px;align-items:flex-start;font-size:15px}
+.promise li b{flex-shrink:0;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--bg3);border:1px solid var(--line);font:600 13px var(--mono);color:var(--accent)}
+form.lead-form{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fl{display:block;margin-bottom:14px;font-size:12.5px;color:var(--ink2)}
+.fl input,.fl textarea,.fl select{display:block;width:100%;margin-top:6px;padding:11px 12px;font-size:16px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+.fl input:focus,.fl textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.fl textarea{resize:vertical;min-height:80px}
+fieldset{border:0;padding:0;margin:0 0 16px}
+legend{font-size:12.5px;color:var(--ink2);margin-bottom:8px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt span{display:inline-block;padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:13px;cursor:pointer;background:var(--bg2);color:var(--ink2);user-select:none;transition:all .12s}
+.opt input:checked+span{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.opt input:focus-visible+span{outline:2px solid var(--info);outline-offset:2px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.form-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.form-foot small{color:var(--ink3);font-size:12px;flex:1;min-width:180px}
+.msg{margin-top:14px;font-size:14px;padding:10px 12px;border-radius:8px;display:none}
+.msg.err{display:block;background:var(--danger-soft);color:var(--danger)}
+.done{text-align:center;padding:30px 10px}
+.done .big{width:60px;height:60px;border-radius:50%;margin:0 auto 16px;display:grid;place-items:center;background:var(--ok-soft);color:var(--ok);font-size:28px}
+.done h3{font-size:22px;margin-bottom:8px}.done p{color:var(--ink2);margin:0 0 20px}
+
+footer{margin-top:90px;border-top:1px solid var(--line);padding:30px 0 calc(30px + env(safe-area-inset-bottom))}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink3)}
+footer a{color:var(--ink2);text-decoration:none}footer a:hover{color:var(--ink)}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.mobile-cta{display:none}
+
+@media(max-width:1080px){
+ .nav-links{display:none}
+ .f1{left:-10px}.f2{right:-8px}
+ .panel{grid-template-columns:1fr;gap:26px}
+ .panel .shot{order:-1}
+ .final-in{grid-template-columns:1fr;padding:40px}
+ .grid3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:720px){
+ body{font-size:15px}
+ .wrap{padding:0 16px}
+ .nav .wrap{height:58px;gap:10px}
+ .nav-cta .btn.primary{display:none}
+ .hero{padding:44px 0 20px}
+ .pill{font-size:12px}
+ .hero-cta .btn{width:100%}
+ .stage{margin-top:36px}
+ .frame{transform:none;border-radius:10px}
+ .frame-bar{padding:8px 10px}
+ .float{padding:7px 10px}.float b{font-size:15px}.float small{font-size:9px}
+ .f1{left:6px;top:auto;bottom:18%}.f2{right:6px;top:18%}.f3,.f4,.spark{display:none}
+ .stats{grid-template-columns:1fr 1fr;margin-top:48px}
+ .stat{padding:18px 16px;border-bottom:1px solid var(--line)}
+ .stat:nth-child(2n){border-right:0}
+ .stat:nth-last-child(-n+2){border-bottom:0}
+ section{padding-top:76px}
+ .head{margin-bottom:28px}
+ .tab{padding:10px 12px;font-size:13px}
+ .thread{grid-template-columns:1fr;gap:18px}
+ .thread::before{left:34px;right:auto;top:10px;bottom:10px;width:2px;height:auto;background:repeating-linear-gradient(180deg,var(--accent) 0 10px,transparent 10px 18px);background-size:2px 18px;animation:none}
+ .node{display:grid;grid-template-columns:68px 1fr;gap:14px;text-align:left;align-items:center;padding:0}
+ .node .dot{margin:0}
+ .grid3{grid-template-columns:1fr}
+ .final{margin-top:76px;border-radius:14px}
+ .final-in{padding:26px 18px;gap:28px}
+ form.lead-form{padding:18px}
+ .row2{grid-template-columns:1fr;gap:0}
+ .form-foot .btn{width:100%}
+ .mobile-cta{display:flex;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;gap:8px;transform:translateY(140%);transition:transform .25s}
+ .mobile-cta.show{transform:none}
+ .mobile-cta .btn{flex:1 1 0;min-width:0;padding:12px 10px;font-size:14px;box-shadow:var(--shadow)}
+ .mobile-cta .btn.primary{flex:2 1 0}
+ .tabs{max-width:100%}
+ .tab{flex:0 0 auto}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation:none!important;transition:none!important}
+ .reveal{opacity:1;transform:none}
+ .frame{transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+ <div class="wrap">
+  <a class="brand" href="#topo" aria-label="GPlanSiS|PDIN, início"><span class="mark">PD</span><b>GPlanSiS<span>|PDIN</span></b></a>
+  <nav class="nav-links" aria-label="Módulos">
+   <a href="#modulos" data-go="supervisorio">Supervisório 3D</a><a href="#modulos" data-go="mes">MES</a><a href="#modulos" data-go="aps">APS</a><a href="#modulos" data-go="plm">PLM</a><a href="#modulos" data-go="pcp">PCP</a><a href="#modulos" data-go="almoxarifado">Almoxarifado</a>
+  </nav>
+  <div class="nav-cta">
+   <button class="theme" id="theme" type="button" aria-label="Alternar tema claro/escuro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+   <a class="btn" href="/login.html">Entrar</a>
+   <a class="btn primary" href="#demo">Solicitar demonstração</a>
+  </div>
+ </div>
+</header>
+
+<main id="topo">
+ <div class="hero">
+  <div class="wrap">
+   <div class="hero-copy">
+    <div class="pill"><b><span class="live"></span>&nbsp;RUNTIME</b> Gêmeo digital ligado ao apontamento e à telemetria de campo</div>
+    <h1>Veja, planeje e execute<br>a fábrica inteira em <span class="grad">um só gêmeo digital.</span></h1>
+    <p class="lead">Supervisório 3D em tempo real, MES, APS, PLM, PCP e Almoxarifado sobre o mesmo dado. Da lista de materiais da engenharia ao lote que ocupa o tanque agora — sem planilhas no meio do caminho.</p>
+    <div class="hero-cta">
+     <a class="btn primary big" href="#demo">Quero ver minha planta no PDIN <span class="arrow">→</span></a>
+     <a class="btn big" href="#modulos">Explorar os módulos</a>
+    </div>
+    <div class="chips" aria-label="Tecnologias">
+     <span class="chip">OPC UA · MQTT</span><span class="chip">ISA-101 · ISA-18.2</span><span class="chip">Navisworks · Plant 3D · Revit</span><span class="chip">PostgreSQL</span><span class="chip">PWA · celular e tablet</span>
+    </div>
+   </div>
+
+   <div class="stage">
+    <div class="frame" id="frame">
+     <div class="frame-bar"><i></i><i></i><i></i><span>pdin.gplansis.com · Gêmeo digital 3D · planta Aurora (fictícia)</span></div>
+     <img src="landing/supervisorio.webp" width="1665" height="828" alt="Gêmeo digital 3D do PDIN: planta Aurora (fictícia) com setores, posições ocupadas e fluxo de materiais" fetchpriority="high">
+    </div>
+    <div class="float f1" aria-hidden="true"><small>TT-101 · Tanque</small><b class="ok" data-tick="11.2" data-range="0.4">11.2</b><span class="u">°C</span><svg class="spark" width="120" height="22" viewBox="0 0 120 22"><polyline id="spark" fill="none" stroke="var(--ok)" stroke-width="1.6" points=""/></svg></div>
+    <div class="float f2" aria-hidden="true"><small>OEE · turno</small><b data-tick="77" data-range="2" data-int="1">77</b><span class="u">%</span></div>
+    <div class="float f3" aria-hidden="true"><small>Kanban PCP</small><b>12</b><span class="u">ordens abertas</span></div>
+    <div class="float f4" aria-hidden="true"><small>Andon · ISA-18.2</small><b class="warn">1</b><span class="u">alarme ativo</span></div>
+   </div>
+
+   <div class="stats reveal">
+    <div class="stat"><b data-count="4">4</b><span>fábricas de demonstração prontas para validar o fluxo de ponta a ponta</span></div>
+    <div class="stat"><b data-count="5">5</b><span>regras de sequenciamento comparadas no APS</span></div>
+    <div class="stat"><b data-count="6">6</b><span>módulos operando sobre o mesmo banco, sem integração frágil</span></div>
+    <div class="stat"><b>5&nbsp;s</b><span>ciclo de leitura da telemetria contextualizada ao lote</span></div>
+   </div>
+  </div>
+ </div>
+
+ <section id="modulos">
+  <div class="wrap">
+   <div class="head reveal">
+    <span class="eyebrow">A plataforma</span>
+    <h2>Seis módulos. Um fio digital.</h2>
+    <p class="lead">Cada tela abaixo é o sistema de verdade, rodando um projeto de validação. Nada de maquete.</p>
+   </div>
+
+   <div class="tabs reveal" role="tablist" aria-label="Módulos do PDIN" id="tabs">
+    <button class="tab" role="tab" id="t-supervisorio" aria-controls="p-supervisorio" aria-selected="true" data-k="supervisorio"><i>◈</i>Supervisório 3D<span class="bar"></span></button>
+    <button class="tab" role="tab" id="t-mes" aria-controls="p-mes" aria-selected="false" tabindex="-1" data-k="mes"><i>▶</i>MES<span class="bar"></span></button>
+    <button class="tab" role="tab" id="t-aps" aria-controls="p-aps" aria-selected="false" tabindex="-1" data-k="aps"><i>▤</i>APS<span class="bar"></span></button>
+    <button class="tab" role="tab" id="t-plm" aria-controls="p-plm" aria-selected="false" tabindex="-1" data-k="plm"><i>◇</i>PLM<span class="bar"></span></button>
+    <button class="tab" role="tab" id="t-pcp" aria-controls="p-pcp" aria-selected="false" tabindex="-1" data-k="pcp"><i>▧</i>PCP<span class="bar"></span></button>
+    <button class="tab" role="tab" id="t-almoxarifado" aria-controls="p-almoxarifado" aria-selected="false" tabindex="-1" data-k="almoxarifado"><i>▥</i>Almoxarifado<span class="bar"></span></button>
+   </div>
+
+   <div class="panel" role="tabpanel" id="p-supervisorio" aria-labelledby="t-supervisorio">
+    <div class="copy"><span class="tag">Supervisório 3D runtime</span><h3>O modelo de engenharia vira a tela de operação.</h3>
+     <p>O NWD do Navisworks é convertido e cada equipamento fica ligado ao recurso do processo. Variáveis, alarmes e o lote em curso aparecem sobre o próprio vaso — um clique abre o faceplate da TAG.</p>
+     <ul class="checks"><li>Cards de variáveis sobre o 3D e faceplate com faixa, setpoint e tendência</li><li>Telemetria OPC UA/MQTT <b>somente leitura</b>, comparada ao setpoint da receita</li><li>Alarmes no andon, corte de seção, camadas e busca por TAG</li><li>Roda no navegador e no celular, sem plugin</li></ul>
+     <div class="links"><a class="btn primary" href="#demo" data-interest="supervisorio">Quero o supervisório 3D <span class="arrow">→</span></a></div></div>
+    <div class="shot"><img src="landing/supervisorio.webp" loading="lazy" width="1665" height="828" alt="Gêmeo digital 3D com setores, WIP e alarmes"></div>
+   </div>
+   <div class="panel" role="tabpanel" id="p-mes" aria-labelledby="t-mes" hidden>
+    <div class="copy"><span class="tag">MES · execução</span><h3>Cada ordem, cada operação, apontada de verdade.</h3>
+     <p>Iniciar, pausar, concluir com boas e refugo, abrir não conformidade. O relógio é o de parede: nada avança sem apontamento, e a capacidade é finita por posição de recurso.</p>
+     <ul class="checks"><li>Apontamento direto na linha ou na gaveta da ordem</li><li>Interlocks: sem kit entregue, a produção não começa</li><li>OEE, paradas e quadro de setores com posições ocupadas</li><li>Não conformidade gera laço de retrabalho rastreável</li></ul>
+     <div class="links"><a class="btn primary" href="#demo" data-interest="mes">Quero o MES <span class="arrow">→</span></a></div></div>
+    <div class="shot"><img src="landing/mes.webp" loading="lazy" width="1656" height="1024" alt="Tela de execução MES com lotes, operações e apontamento"></div>
+   </div>
+   <div class="panel" role="tabpanel" id="p-aps" aria-labelledby="t-aps" hidden>
+    <div class="copy"><span class="tag">APS · programação</span><h3>Programe arrastando. O resto se reorganiza.</h3>
+     <p>Gantt por posição de recurso com a linha do agora e os turnos. Arraste uma operação e toda a programação é empurrada para frente, respeitando a capacidade.</p>
+     <ul class="checks"><li>Cinco regras comparadas lado a lado: PCP, EDD, SPT, razão crítica, FIFO</li><li>Solte em outra pista para trocar o recurso</li><li>Alerta de término após o prazo antes de acontecer</li><li>Portfólio: todos os projetos na mesma capacidade combinada</li></ul>
+     <div class="links"><a class="btn primary" href="#demo" data-interest="aps">Quero o APS <span class="arrow">→</span></a></div></div>
+    <div class="shot"><img src="landing/aps.webp" loading="lazy" width="1656" height="1024" alt="Gantt do APS com operações por recurso"></div>
+   </div>
+   <div class="panel" role="tabpanel" id="p-plm" aria-labelledby="t-plm" hidden>
+    <div class="copy"><span class="tag">PLM · engenharia</span><h3>Da BOM da engenharia ao chão, sem retrabalho.</h3>
+     <p>Estrutura e roteiro por produto, com revisões controladas. Importe a lista do CAD/ERP: itens novos entram no catálogo e já viram pendência de material.</p>
+     <ul class="checks"><li>Importação de BOM por colagem ou CSV</li><li>Revisão em análise → liberada, imutável depois de liberar</li><li>BOM congelada em cada ordem na criação</li><li>Pendências ligam ordem × item × falta × compra</li></ul>
+     <div class="links"><a class="btn primary" href="#demo" data-interest="plm">Quero o PLM <span class="arrow">→</span></a></div></div>
+    <div class="shot"><img src="landing/plm.webp" loading="lazy" width="1656" height="1024" alt="PLM com estrutura de materiais por produto"></div>
+   </div>
+   <div class="panel" role="tabpanel" id="p-pcp" aria-labelledby="t-pcp" hidden>
+    <div class="copy"><span class="tag">PCP · Kanban</span><h3>A carteira inteira sob controle, num quadro.</h3>
+     <p>Carteira → planejada → liberada → produção → pausada → concluída. Arrastar muda o status com interlocks; a ordem na coluna é a sequência que o APS usa.</p>
+     <ul class="checks"><li>MRP com necessidades e sugestão de compra</li><li>Gaveta da ordem: prazo, prioridade, recursos e histórico</li><li>Sequenciamento manual que alimenta a programação</li><li>Urgências e vencidas destacadas</li></ul>
+     <div class="links"><a class="btn primary" href="#demo" data-interest="pcp">Quero o PCP <span class="arrow">→</span></a></div></div>
+    <div class="shot"><img src="landing/pcp.webp" loading="lazy" width="1656" height="1024" alt="Kanban do PCP com ordens por status"></div>
+   </div>
+   <div class="panel" role="tabpanel" id="p-almoxarifado" aria-labelledby="t-almoxarifado" hidden>
+    <div class="copy"><span class="tag">Almoxarifado · WMS</span><h3>O material certo, no lugar certo, antes da hora.</h3>
+     <p>Kits reservados na criação da ordem, fila de picking para a produção, recebimento de compras e cobertura por item. Saldo do sistema e do banco sempre iguais.</p>
+     <ul class="checks"><li>Picking libera a produção a partir do almoxarifado</li><li>Físico, reservado, disponível, mínimo e cobertura em dias</li><li>Pedidos de compra com lead time e recebimento</li><li>Movimentações imutáveis e auditadas no PostgreSQL</li></ul>
+     <div class="links"><a class="btn primary" href="#demo" data-interest="almoxarifado">Quero o almoxarifado <span class="arrow">→</span></a></div></div>
+    <div class="shot"><img src="landing/almoxarifado.webp" loading="lazy" width="1656" height="1024" alt="Almoxarifado com picking para produção e posição de estoque"></div>
+   </div>
+  </div>
+ </section>
+
+ <section id="fio">
+  <div class="wrap">
+   <div class="head center reveal">
+    <span class="eyebrow">Integração nativa</span>
+    <h2>Uma decisão em um módulo aparece em todos.</h2>
+    <p class="lead">Não são seis sistemas conversando por integração. É um único estado, persistido e reconciliado no PostgreSQL.</p>
+   </div>
+   <div class="thread reveal">
+    <div class="node"><div class="dot">◇</div><div><b>PLM</b><span>BOM e roteiro liberados</span></div></div>
+    <div class="node"><div class="dot">▤</div><div><b>APS</b><span>Sequência com capacidade finita</span></div></div>
+    <div class="node"><div class="dot">▧</div><div><b>PCP</b><span>Liberação e MRP</span></div></div>
+    <div class="node"><div class="dot">▥</div><div><b>Almoxarifado</b><span>Kit separado e entregue</span></div></div>
+    <div class="node"><div class="dot">▶</div><div><b>MES</b><span>Apontamento real</span></div></div>
+    <div class="node"><div class="dot">◈</div><div><b>Supervisório 3D</b><span>Lote, variáveis e alarmes no ativo</span></div></div>
+   </div>
+   <p class="loop reveal">↺ E volta: uma <b>parada ou falha</b> registrada no ativo tira a posição da capacidade e <b>reprograma o APS</b>; o alarme de processo aparece no andon e na ordem.</p>
+  </div>
+ </section>
+
+ <section id="por-que">
+  <div class="wrap">
+   <div class="head reveal">
+    <span class="eyebrow">Por que PDIN</span>
+    <h2>Feito para quem responde pela produção.</h2>
+   </div>
+   <div class="grid3">
+    <div class="card reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg></div><h3>Interlocks de processo</h3><p>Operação de almoxarifado não conclui sem picking; estágio seguinte não inicia sem kit. O sistema impede o erro em vez de relatá-lo depois.</p></div>
+    <div class="card reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg></div><h3>Seu modelo 3D, não um desenho genérico</h3><p>Navisworks, Plant 3D e Revit convertidos com cada objeto selecionável e vinculado à TAG e ao recurso.</p></div>
+    <div class="card reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><h3>Somente leitura no campo</h3><p>O gateway lê o PLC por OPC UA e sensores por MQTT. Nenhuma escrita em controlador sai do PDIN.</p></div>
+    <div class="card reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14a5.5 5.5 0 0 1 3 6"/></svg></div><h3>Acesso por perfil</h3><p>Administrador, operador e leitor, com trilha de acesso e senhas provisórias de troca obrigatória.</p></div>
+    <div class="card reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg></div><h3>No bolso do supervisor</h3><p>Instalável como app no celular e no tablet. Kanban, apontamento e o gêmeo 3D funcionam no toque.</p></div>
+    <div class="card reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6M4 11.5v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div><h3>Dado auditável</h3><p>Ordens, apontamentos, estoque e revisões reconciliados no PostgreSQL, com movimentos e eventos imutáveis.</p></div>
+   </div>
+  </div>
+ </section>
+
+ <div class="wrap">
+  <div class="final reveal" id="demo">
+   <div class="final-in">
+    <div>
+     <span class="eyebrow">Demonstração guiada</span>
+     <h2>Veja o PDIN rodando com o seu processo.</h2>
+     <p class="lead">Em uma conversa guiada mostramos o fluxo completo — do 3D ao apontamento — e avaliamos o que é preciso para trazer a sua planta.</p>
+     <ul class="promise">
+      <li><b>1</b><span><strong>Diagnóstico rápido</strong> do seu processo, modelos 3D disponíveis e sinais de campo.</span></li>
+      <li><b>2</b><span><strong>Demonstração ao vivo</strong> dos módulos que mais importam para você.</span></li>
+      <li><b>3</b><span><strong>Plano de implantação</strong> com escopo, etapas e o que já dá para ligar.</span></li>
+     </ul>
+    </div>
+    <form class="lead-form" id="lead-form" novalidate>
+     <div id="lead-fields">
+      <div class="row2">
+       <label class="fl">Nome<input name="name" required minlength="2" maxlength="120" autocomplete="name"></label>
+       <label class="fl">Empresa<input name="company" required minlength="2" maxlength="160" autocomplete="organization"></label>
+      </div>
+      <div class="row2">
+       <label class="fl">E-mail corporativo<input name="email" type="email" required maxlength="254" autocomplete="email" inputmode="email"></label>
+       <label class="fl">Telefone / WhatsApp <span style="color:var(--ink3)">(opcional)</span><input name="phone" type="tel" maxlength="40" autocomplete="tel" inputmode="tel"></label>
+      </div>
+      <label class="fl">Cargo <span style="color:var(--ink3)">(opcional)</span><input name="role" maxlength="80" autocomplete="organization-title" placeholder="Ex.: Gerente de produção, Engenharia de automação"></label>
+      <fieldset><legend>O que você quer ver?</legend><div class="opts">
+       <label class="opt"><input type="checkbox" name="interests" value="supervisorio"><span>Supervisório 3D</span></label>
+       <label class="opt"><input type="checkbox" name="interests" value="mes"><span>MES</span></label>
+       <label class="opt"><input type="checkbox" name="interests" value="aps"><span>APS</span></label>
+       <label class="opt"><input type="checkbox" name="interests" value="plm"><span>PLM</span></label>
+       <label class="opt"><input type="checkbox" name="interests" value="pcp"><span>PCP</span></label>
+       <label class="opt"><input type="checkbox" name="interests" value="almoxarifado"><span>Almoxarifado</span></label>
+      </div></fieldset>
+      <label class="fl">Conte sobre sua operação <span style="color:var(--ink3)">(opcional)</span><textarea name="message" maxlength="2000" rows="3" placeholder="Segmento, número de linhas, sistemas atuais, se já tem modelo 3D…"></textarea></label>
+      <label class="hp" aria-hidden="true">Não preencha<input name="website" tabindex="-1" autocomplete="off"></label>
+      <div class="form-foot"><button class="btn primary big" type="submit">Agendar minha demonstração <span class="arrow">→</span></button><small>Usamos seus dados só para retornar este contato.</small></div>
+      <p class="msg" id="lead-msg" role="alert"></p>
+     </div>
+     <div class="done" id="lead-done" hidden><div class="big">✓</div><h3>Recebemos sua solicitação.</h3><p>Nossa equipe vai entrar em contato pelo e-mail informado para combinar a demonstração.</p><a class="btn" href="#modulos">Continuar explorando</a></div>
+    </form>
+   </div>
+  </div>
+ </div>
+</main>
+
+<footer>
+ <div class="wrap"><span>© <span id="year">2026</span> GPlanSiS · GPlanSiS|PDIN — Planejamento Digital da Indústria</span><span><a href="/login.html">Acessar o sistema</a> · <a href="#demo">Demonstração</a></span></div>
+</footer>
+
+<div class="mobile-cta" id="mobile-cta"><a class="btn" href="/login.html">Entrar</a><a class="btn primary" href="#demo">Solicitar demonstração</a></div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+$('#year').textContent=new Date().getFullYear();
+
+/* tema: mesmo armazenamento do sistema (pdin-theme) */
+$('#theme').addEventListener('click',()=>{const t=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=t;try{localStorage.setItem('pdin-theme',t);}catch{}});
+
+/* barra de navegação e CTA fixo no celular */
+const nav=$('#nav'),mcta=$('#mobile-cta'),demo=$('#demo');
+const onScroll=()=>{nav.classList.toggle('scrolled',scrollY>8);const r=demo.getBoundingClientRect();mcta.classList.toggle('show',scrollY>520&&!(r.top<innerHeight&&r.bottom>0));};
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+/* entrada suave dos blocos */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.14});
+$$('.reveal').forEach(el=>io.observe(el));
+requestAnimationFrame(()=>setTimeout(()=>$('#frame').classList.add('in'),120));
+
+/* números contam ao aparecer */
+const cio=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;cio.unobserve(e.target);const el=e.target,end=+el.dataset.count;if(reduce)return;const t0=performance.now();const step=t=>{const k=Math.min(1,(t-t0)/1400),v=Math.round(end*(1-Math.pow(1-k,3)));el.textContent=v.toLocaleString('pt-BR');if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);}),{threshold:.6});
+$$('[data-count]').forEach(el=>cio.observe(el));
+
+/* cartões flutuantes do hero: valores de exemplo oscilando (ilustração, não é leitura de campo) */
+const spark=$('#spark'),hist=Array.from({length:30},()=>11.2);
+function tick(){$$('[data-tick]').forEach(el=>{const base=+el.dataset.tick,r=+el.dataset.range,v=base+(Math.random()-.5)*r;el.textContent=el.dataset.int?Math.round(v):v.toFixed(1);if(el.closest('.f1')){hist.push(v);hist.shift();}});
+ const mn=10.9,mx=11.5;spark.setAttribute('points',hist.map((v,i)=>`${(i/(hist.length-1)*120).toFixed(1)},${(20-(v-mn)/(mx-mn)*18).toFixed(1)}`).join(' '));}
+tick();if(!reduce)setInterval(tick,1600);
+
+/* vitrine em abas: acessível por teclado, avança sozinha até o visitante interagir */
+const tabs=$$('.tab'),tabBox=$('#tabs');let cur=0,timer=null,userTook=false;const DWELL=9000;
+function select(i,focus){cur=(i+tabs.length)%tabs.length;tabs.forEach((t,k)=>{const on=k===cur;t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1;const p=document.getElementById(t.getAttribute('aria-controls'));p.hidden=!on;if(on){p.classList.remove('enter');void p.offsetWidth;p.classList.add('enter');}});if(focus)tabs[cur].focus();
+ tabs[cur].scrollIntoView({block:'nearest',inline:'center',behavior:reduce?'auto':'smooth'});schedule();}
+function schedule(){clearTimeout(timer);if(userTook||reduce){tabBox.classList.add('paused');return;}timer=setTimeout(()=>select(cur+1),DWELL);}
+tabs.forEach((t,i)=>t.addEventListener('click',()=>{userTook=true;select(i);}));
+tabBox.addEventListener('keydown',e=>{const k={ArrowRight:1,ArrowLeft:-1}[e.key];if(k){e.preventDefault();userTook=true;select(cur+k,true);}if(e.key==='Home'){userTook=true;select(0,true);}if(e.key==='End'){userTook=true;select(tabs.length-1,true);}});
+const mio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)schedule();else clearTimeout(timer);}),{threshold:.3});mio.observe($('#modulos'));
+$$('[data-go]').forEach(a=>a.addEventListener('click',()=>{userTook=true;select(tabs.findIndex(t=>t.dataset.k===a.dataset.go));}));
+select(0);
+
+/* CTA de cada módulo já marca o interesse no formulário */
+$$('[data-interest]').forEach(a=>a.addEventListener('click',()=>{const c=document.querySelector(`input[name=interests][value="${a.dataset.interest}"]`);if(c)c.checked=true;setTimeout(()=>$('#lead-form [name=name]').focus({preventScroll:true}),600);}));
+
+/* envio da solicitação */
+$('#lead-form').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,msg=$('#lead-msg'),btn=f.querySelector('button[type=submit]');msg.className='msg';msg.textContent='';
+ const data={name:f.name.value.trim(),company:f.company.value.trim(),email:f.email.value.trim(),phone:f.phone.value.trim()||null,role:f.role.value.trim()||null,message:f.message.value.trim()||null,website:f.website.value,interests:$$('input[name=interests]:checked').map(c=>c.value)};
+ if(data.name.length<2||data.company.length<2||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)){msg.className='msg err';msg.textContent='Preencha nome, empresa e um e-mail válido.';return;}
+ btn.disabled=true;const label=btn.innerHTML;btn.textContent='Enviando…';
+ try{const r=await fetch('/api/leads',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)});let j=null;try{j=await r.json();}catch{}
+  if(!r.ok)throw Error(typeof j?.detail==='string'?j.detail:'Não foi possível enviar agora. Tente novamente.');
+  $('#lead-fields').hidden=true;$('#lead-done').hidden=false;}
+ catch(x){msg.className='msg err';msg.textContent=x.message;}finally{btn.disabled=false;btn.innerHTML=label;}});
+
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+</script>
+</body>
+</html>

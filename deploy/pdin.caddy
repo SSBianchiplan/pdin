@@ -1,0 +1,11 @@
+# GPlanSiS|PDIN — bloco do Caddy (importado pelo Caddyfile principal)
+# App (FastAPI + login próprio) em 127.0.0.1:8940 — docker-compose.prod.yml
+pdin.exemplo.com {
+	encode zstd gzip
+	request_body {
+		max_size 200MB
+	}
+	reverse_proxy 127.0.0.1:8940 {
+		header_up X-Forwarded-Proto https
+	}
+}

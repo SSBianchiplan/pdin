@@ -1,0 +1,73 @@
+# GPlanSiS|PDIN — produção (ex.: https://pdin.gplansis.com)
+# Um proxy reverso no host (Caddy, ver deploy/pdin.caddy) termina o TLS e encaminha para 127.0.0.1:8940.
+# Variáveis no .env ao lado deste arquivo (modelo em .env.example). Nunca versione o .env.
+#   docker compose -f docker-compose.prod.yml up -d --build
+name: pdin
+services:
+  pdin-db:
+    image: postgres:18-alpine
+    container_name: pdin-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pdin_demo
+      POSTGRES_USER: pdin_owner
+      POSTGRES_PASSWORD: ${PDIN_DB_PASSWORD:?defina PDIN_DB_PASSWORD no .env}
+    volumes:
+      - pdin_pgdata:/var/lib/postgresql
+      # Na 1ª subida aplica as migrações e o seed demo (fictício). 006–008 (usuários, leads,
+      # telemetria simulada) são aplicadas pela API na subida, de forma idempotente.
+      - ./database/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ./database/002_api_role.sql:/docker-entrypoint-initdb.d/002_api_role.sql:ro
+      - ./database/003_projects.sql:/docker-entrypoint-initdb.d/003_projects.sql:ro
+      - ./database/004_operational.sql:/docker-entrypoint-initdb.d/004_operational.sql:ro
+      - ./database/005_iot.sql:/docker-entrypoint-initdb.d/005_iot.sql:ro
+      - ./database/900_demo_projects.sql:/docker-entrypoint-initdb.d/900_demo_projects.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pdin_owner -d pdin_demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  pdin-app:
+    build: .
+    image: gplansis/pdin:3.7.0
+    container_name: pdin-app
+    restart: unless-stopped
+    depends_on:
+      pdin-db:
+        condition: service_healthy
+    environment:
+      PDIN_DATABASE_URL: postgresql://pdin_owner:${PDIN_DB_PASSWORD}@pdin-db:5432/pdin_demo
+      PDIN_MASTER_EMAIL: ${PDIN_MASTER_EMAIL:-contato@gplansis.com}
+      PDIN_MASTER_NAME: ${PDIN_MASTER_NAME:-Administrador}
+      PDIN_MASTER_PASSWORD: ${PDIN_MASTER_PASSWORD:-}
+      PDIN_GATEWAY_TOKEN: ${PDIN_GATEWAY_TOKEN:-}
+    ports:
+      - "127.0.0.1:8940:8000"
+    volumes:
+      # Cenas 3D e arquivos grandes ficam fora da imagem e sobrevivem a rebuilds.
+      - ./data:/pdin/data
+    mem_limit: 1g
+
+  # Opcional: telemetria SIMULADA para projetos que declaram stages[].telemetry.
+  # Gere a configuração com `node tools/build-gateway-config.cjs <CODIGO>` e ative com
+  #   docker compose -f docker-compose.prod.yml --profile sim up -d
+  pdin-sim:
+    image: gplansis/pdin:3.7.0
+    container_name: pdin-sim
+    profiles: ["sim"]
+    restart: unless-stopped
+    depends_on:
+      - pdin-app
+    environment:
+      PDIN_GATEWAY_TOKEN: ${PDIN_GATEWAY_TOKEN:?defina PDIN_GATEWAY_TOKEN no .env}
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./integration:/pdin/integration:ro
+    command: ["sh", "-c", "python tools/opcua_gateway.py integration/*-gateway.json --simulate --api http://pdin-app:8000"]
+    mem_limit: 128m
+    healthcheck:
+      disable: true
+
+volumes:
+  pdin_pgdata:

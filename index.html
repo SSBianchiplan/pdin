@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GPlanSiS|PDIN · Planejamento Digital da Indústria</title>
+<meta name="description" content="GPlanSiS|PDIN — Planejamento Digital da Indústria: gêmeo digital, MES, APS, PLM, PPCP, WMS, qualidade e manutenção com capacidade finita e apontamento em tempo real.">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('pdin-theme')||'dark';}catch(e){}</script>
+<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PDIN">
+<link rel="stylesheet" href="app.css?v=3.7.0">
+</head>
+<body>
+<div id="nav-backdrop" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar">
+ <a class="brand" href="#projects"><span class="brand-mark">PD</span><div><div class="brand-name">GPlanSiS<b>|PDIN</b></div><small>Planejamento Digital da Indústria</small></div></a>
+ <div class="project-switch"><label class="eyebrow">Projeto ativo<select id="project-select" aria-label="Projeto ativo"><option>Carregando…</option></select></label><div class="mode"><span id="mode-label"><span class="dot off"></span> conectando…</span><span id="project-complexity" class="tag"></span></div></div>
+ <div class="nav-label">Módulos</div>
+ <nav id="nav"></nav>
+ <div class="side-bottom">
+  <p id="side-note">Operação em tempo real: apontamentos, picking, planejamento com capacidade finita e persistência em PostgreSQL.</p>
+  <div class="theme-toggle" role="group" aria-label="Tema"><button data-theme="dark" type="button">◐ <span>Escuro</span></button><button data-theme="light" type="button">○ <span>Claro</span></button></div>
+  <button id="export" class="subtle" type="button">↓ Exportar estado JSON</button>
+  <button id="reset" class="subtle" type="button">↺ Reconstruir do banco</button>
+  <div class="avatar"><b>GL</b><span>Engenharia industrial<small>Administrador</small></span></div>
+ </div>
+</aside>
+<main>
+ <header>
+  <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><span></span><span></span><span></span></button><a class="mobile-brand" href="#projects" aria-label="Início"><span class="brand-mark">PD</span></a>
+  <div class="breadcrumbs">GPlanSiS|PDIN <span>/</span> <span id="crumb-project">—</span> <span>/</span> <b id="crumb">Projetos</b></div>
+  <div class="header-right"><span id="shift-tag" class="tag">TURNO</span><span id="alarm-tag" class="tag">0 alarmes</span><span id="pending-tag" class="tag" title="Pickings pendentes">0 pickings</span><span id="sim-clock" title="Relógio">--:--</span></div>
+ </header>
+ <div class="page-heading"><div><div class="eyebrow" id="page-eyebrow">Planejamento digital da indústria</div><h1 id="page-title">Projetos</h1><p id="page-subtitle">Selecione ou crie uma fábrica.</p></div><div class="page-actions"><button class="primary" id="new-order" type="button">＋ Nova ordem</button><button id="new-project" type="button">＋ Novo projeto</button></div></div>
+ <section class="metrics" id="metrics" aria-label="Indicadores"></section>
+ <section id="view-projects" class="view"></section>
+ <section id="view-portfolio" class="view"></section>
+ <section id="view-twin" class="view">
+  <div class="twin-layout">
+   <div class="scene-card">
+    <div class="scene-top"><div><span class="dot"></span><b>Gêmeo digital</b><span class="muted" id="twin-note">Planta Aurora (fictícia) · Térreo</span></div><div><span class="tag accent">3D LIVE</span></div></div>
+    <iframe id="twin" src="twin.html" title="Fábrica 3D interativa"></iframe>
+    <div class="scene-controls"><div><button data-camera="iso" class="selected" type="button">Isométrica</button><button data-camera="plan" type="button">Planta</button><button id="tour" type="button">◎ Tour</button></div><div><button data-layer="flow" class="selected" type="button">Fluxos</button><button data-layer="roof" type="button">Cobertura</button><button data-layer="label" class="selected" type="button">Rótulos</button><button id="heat" type="button">◉ Carga</button><button id="home-camera" title="Restaurar câmera" type="button">⌂</button></div></div>
+   </div>
+   <aside class="insights">
+    <div class="panel"><div class="panel-title"><h2>Pulso da operação</h2><span class="dot"></span></div><div id="pulse"></div></div>
+    <div class="panel" id="telemetry-panel" hidden><div class="panel-title"><h2>Telemetria de processo</h2><span id="tele-count" class="tag"></span></div><div id="telemetry" class="alarm-list" style="max-height:220px"></div></div>
+    <div class="panel selected-area"><div class="eyebrow">Inspeção do setor</div><h2 id="asset-name">—</h2><p id="asset-desc">Selecione um setor na planta.</p><div id="asset-stats"></div><div id="asset-queue"></div><div class="asset-actions"><button id="asset-orders" type="button">Ver ordens do setor ↗</button><button id="failure" type="button">⚡ Parada programada</button></div></div>
+   </aside>
+  </div>
+  <div class="lower-grid">
+   <div class="panel"><div class="panel-title"><h2>Fluxo de produção</h2><span class="muted">WIP por setor · clique para inspecionar</span></div><div id="flow-stages"></div></div>
+   <div class="stack"><div class="panel"><div class="panel-title"><h2>Andon · alarmes ativos</h2><span id="andon-count" class="tag"></span></div><div id="andon" class="alarm-list"></div></div><div class="panel"><div class="panel-title"><h2>Registro de eventos</h2><span class="muted">Últimos 8</span></div><div id="events"></div></div></div>
+  </div>
+ </section>
+ <section id="view-mes" class="view"></section>
+ <section id="view-aps" class="view"></section>
+ <section id="view-plm" class="view"></section>
+ <section id="view-ppcp" class="view"></section>
+ <section id="view-stock" class="view"></section>
+ <section id="view-quality" class="view"></section>
+ <section id="view-maint" class="view"></section>
+ <section id="view-kpi" class="view"></section>
+ <section id="view-users" class="view"></section>
+ <footer><span>GPlanSiS|PDIN <b>/</b> Planejamento Digital da Indústria</span><span id="save-status">—</span><span>Portfólio · Gêmeo · MES · APS · PLM · PPCP · WMS · Qualidade · Manutenção</span></footer>
+</main>
+
+<!-- Gaveta lateral da ordem de produção -->
+<div id="drawer-backdrop" hidden></div>
+<aside id="drawer" class="drawer" hidden aria-label="Ordem de produção"><div id="drawer-body"></div></aside>
+
+<dialog id="order-dialog"><form id="order-form" method="dialog"><div class="panel-title"><h2>Nova ordem de produção</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><p>A revisão liberada e o kit de materiais são congelados na criação. A ordem entra na carteira do PCP com o kit reservado.</p><label>Cliente / referência<input name="client" required minlength="2" maxlength="60" placeholder="Nome do cliente"></label><label>Produto<select name="product" id="order-product"></select></label><div class="row3"><label>Quantidade<input name="qty" type="number" min="1" max="50" value="1" required></label><label>Prazo (horas a partir de agora)<input name="due" type="number" min="1" max="2000" value="72" required></label><label>Prioridade<select name="priority"><option>Normal</option><option>Urgente</option></select></label></div><div id="order-kit" class="muted"></div><button class="primary" type="submit">Criar e reservar materiais</button><p class="form-error" id="order-error" role="alert"></p></form></dialog>
+
+<dialog id="project-dialog" class="wide"><form id="project-form" method="dialog"><div class="panel-title"><h2>Novo projeto de fábrica</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><p>Escolha um modelo de indústria e ajuste. Estágios, itens e produtos podem ser editados em texto (um por linha). No modo banco, códigos de produto recebem o prefixo do projeto.</p>
+<div class="row"><label>Modelo<select name="template" id="project-template"></select></label><label>Complexidade<select name="complexity"><option value="basic">Básica</option><option value="advanced" selected>Avançada</option><option value="expert">Especialista</option></select></label></div>
+<div class="row"><label>Código (A-Z, 0-9, -)<input name="code" required pattern="[A-Z0-9][A-Z0-9_-]{1,31}" placeholder="FAB-01" style="text-transform:uppercase"></label><label>Nome<input name="name" required minlength="3" maxlength="120" placeholder="Minha fábrica"></label></div>
+<label>Descrição<input name="description" maxlength="300"></label>
+<div class="row3"><label>Turnos<select name="shifts"><option value="1">1 turno · 06:00–15:00</option><option value="2" selected>2 turnos · 06:00–23:00</option><option value="3">3 turnos · 24 h</option><option value="0">Sem calendário</option></select></label><label>Ordens iniciais (validação)<input name="orders" type="number" min="0" max="40" value="12"></label><label>Tipo<select name="kind"><option value="real">Projeto real</option><option value="demo">Validação</option></select></label></div>
+<div class="checks"><label><input type="checkbox" name="quality" checked> Qualidade e retrabalho</label><label><input type="checkbox" name="autoMrp" checked> MRP automático (horário)</label></div>
+<label>Estágios · <code>id;nome;min/un;setup;posições;setor3D;mtbf;mttr;yield;retrabalhoPara</code><textarea name="stages" rows="6" required></textarea></label>
+<label>Itens de estoque · <code>código;nome;unidade(un|m|kg|l);saldo;mínimo;leadTime(h)</code><textarea name="items" rows="4" required></textarea></label>
+<label>Produtos · <code>código;nome;rev;rota(id>id>id);bom(item=qtd,item=qtd)</code><textarea name="products" rows="4" required></textarea></label>
+<button class="primary" type="submit">Criar projeto</button><p class="form-error" id="project-error" role="alert"></p></form></dialog>
+
+<dialog id="receive-dialog"><form id="receive-form" method="dialog"><div class="panel-title"><h2>Movimentar estoque</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><input type="hidden" name="item"><p id="receive-item" class="muted"></p><div class="row"><label>Operação<select name="kind"><option value="receive">Recebimento (NF)</option><option value="purchase">Pedido de compra (lead time)</option></select></label><label>Quantidade<input name="qty" type="number" min="1" step="any" required></label></div><label>Referência<input name="ref" maxlength="40" placeholder="NF, pedido ou fornecedor"></label><button class="primary" type="submit">Confirmar</button><p class="form-error" id="receive-error" role="alert"></p></form></dialog>
+
+<dialog id="revision-dialog"><form id="revision-form" method="dialog"><div class="panel-title"><h2>Propor revisão de engenharia</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><input type="hidden" name="product"><p id="revision-product" class="muted"></p><div id="revision-lines"></div><button class="primary" type="submit">Registrar proposta</button><p class="form-error" id="revision-error" role="alert"></p></form></dialog>
+
+<dialog id="bom-dialog" class="wide"><form id="bom-form" method="dialog"><div class="panel-title"><h2>Importar BOM da engenharia</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><input type="hidden" name="product"><p id="bom-product" class="muted"></p><p>Cole a lista exportada do CAD/ERP ou carregue um arquivo CSV/TXT. Formato por linha: <code>código;descrição;unidade;quantidade</code> (também aceita TAB ou vírgula). Itens desconhecidos são criados no catálogo com saldo zero e aparecem como pendência de material.</p><label>Arquivo<input type="file" name="file" accept=".csv,.txt,.tsv"></label><label>Linhas<textarea name="text" rows="8" placeholder="INV-001;Invólucro metálico IP54;un;1&#10;CU-030;Barramento de cobre;m;12"></textarea></label><label>Observação<input name="note" maxlength="120" placeholder="Ex.: ECN-0042 · alteração de barramento"></label><div id="bom-preview" class="muted"></div><button class="primary" type="submit">Importar como revisão em análise</button><p class="form-error" id="bom-error" role="alert"></p></form></dialog>
+
+<dialog id="finish-dialog"><form id="finish-form" method="dialog"><div class="panel-title"><h2>Concluir operação</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><input type="hidden" name="order"><p id="finish-info" class="muted"></p><div class="row"><label>Quantidade boa<input name="good" type="number" min="0" step="1" required></label><label>Refugo / NC<input name="scrap" type="number" min="0" step="1" value="0"></label></div><label class="checks" style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="rework" checked style="width:auto;display:inline;margin:0"> Refugo gera laço de retrabalho</label><button class="primary" type="submit">Apontar conclusão</button><p class="form-error" id="finish-error" role="alert"></p></form></dialog>
+
+<dialog id="stop-dialog"><form id="stop-form" method="dialog"><div class="panel-title"><h2>Parada de setor</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><input type="hidden" name="stage"><p id="stop-stage" class="muted"></p><div class="row"><label>Tipo<select name="kind"><option value="stop">Parada programada</option><option value="breakdown">Falha / quebra</option></select></label><label>Duração prevista (min, falhas)<input name="minutes" type="number" min="5" value="30"></label></div><label>Motivo<select name="reason"><option>Manutenção preventiva</option><option>Troca de ferramenta / setup</option><option>Falta de material</option><option>Falha elétrica</option><option>Quebra mecânica</option><option>Falta de operador</option><option>Reunião de segurança</option></select></label><button class="primary" type="submit">Registrar</button></form></dialog>
+
+<dialog id="password-dialog"><form id="password-form" method="dialog"><div class="panel-title"><h2>Trocar senha</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><p id="password-forced" class="notice" hidden>Você está usando uma senha provisória. Defina uma senha pessoal para continuar.</p><label>Senha atual<input type="password" name="current" autocomplete="current-password" required></label><label>Nova senha<input type="password" name="new" autocomplete="new-password" minlength="10" required></label><p class="muted" style="margin:-6px 0 0;font-size:11px">Mínimo de 10 caracteres, com maiúsculas, minúsculas e números. As outras sessões desta conta serão encerradas.</p><label>Repita a nova senha<input type="password" name="confirm" autocomplete="new-password" required></label><button class="primary" type="submit">Salvar nova senha</button><p class="form-error" id="password-error" role="alert"></p></form></dialog>
+
+<dialog id="user-dialog"><form id="user-form" method="dialog"><div class="panel-title"><h2>Novo usuário</h2><button type="button" class="close" data-close aria-label="Fechar">×</button></div><label>Nome<input name="name" required minlength="2" maxlength="120" autocomplete="off"></label><label>E-mail<input name="email" type="email" required maxlength="254" autocomplete="off" inputmode="email"></label><div class="row"><label>Perfil<select name="role"><option value="operador">Operador</option><option value="leitor">Leitor</option><option value="admin">Administrador</option></select></label><label>Senha inicial<select name="mode"><option value="temp">Gerar provisória</option><option value="set">Definir agora</option></select></label></div><label hidden>Senha inicial (troca obrigatória no 1º acesso)<input name="password" type="text" minlength="10" maxlength="200" autocomplete="off"></label><button class="primary" type="submit">Criar usuário</button><p class="form-error" id="user-error" role="alert"></p></form><div id="user-secret" hidden></div></dialog>
+
+<div id="toast" role="status"></div>
+<script src="templates.js?v=3.5.0"></script>
+<script src="simulation.js?v=3.7.0"></script>
+<script src="modules.js?v=3.3.0"></script>
+<script src="app.js?v=3.7.0"></script>
+<script src="users.js?v=3.7.0"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+# Segredos — nunca versionar (só .env.example)
+.env
+.env.*
+!.env.example
+
+# Dados vivos: cenas 3D, modelos GLB/NWD, importações e configurações de gateway geradas
+data/
+integration/
+*.glb
+*.nwd
+*.pdf
+
+# Bancos, dumps e backups
+*.db
+*.sqlite
+*.sqlite3
+database/999_*.sql
+*.dump
+*.bak
+*.bak*
+*-bak-*
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node / ferramentas de teste
+node_modules/
+.browser-profile/
+artifacts/
+
+# Logs e temporários
+*.log
+*.tmp
+tmp/
+
+# Chaves e certificados
+*.pem
+*.key
+*.crt
+*.p12
+
+# SO / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

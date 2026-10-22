@@ -1,0 +1,27 @@
+name: pdin
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: pdin-db
+    environment:
+      POSTGRES_DB: pdin_demo
+      POSTGRES_USER: pdin_owner
+      # Senha padrão apenas para o banco DEMO local (bind em 127.0.0.1). Em produção defina PDIN_DB_PASSWORD.
+      POSTGRES_PASSWORD: ${PDIN_DB_PASSWORD:-pdin_demo_local}
+    ports:
+      - "127.0.0.1:5437:5432"
+    volumes:
+      - pdin_pgdata:/var/lib/postgresql
+      - ./database/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ./database/002_api_role.sql:/docker-entrypoint-initdb.d/002_api_role.sql:ro
+      - ./database/003_projects.sql:/docker-entrypoint-initdb.d/003_projects.sql:ro
+      - ./database/004_operational.sql:/docker-entrypoint-initdb.d/004_operational.sql:ro
+      - ./database/005_iot.sql:/docker-entrypoint-initdb.d/005_iot.sql:ro
+      - ./database/900_demo_projects.sql:/docker-entrypoint-initdb.d/900_demo_projects.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pdin_owner -d pdin_demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  pdin_pgdata:
